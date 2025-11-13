@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2><i class="fas fa-users"></i> Customer Management</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal" onclick="openCustomerModal()">
+                <i class="fas fa-plus"></i> Add New Customer
+            </button>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search customers...">
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="customersTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Loyalty Points</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerModalTitle">Add New Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    <input type="hidden" id="customerId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="firstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="lastName" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone Number *</label>
+                            <input type="tel" class="form-control" id="phoneNumber" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" class="form-control" id="address">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">City</label>
+                            <input type="text" class="form-control" id="city">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">State</label>
+                            <input type="text" class="form-control" id="state">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Zip Code</label>
+                            <input type="text" class="form-control" id="zipCode">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCustomer()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let customers = [];
+
+$(document).ready(function() {
+    loadCustomers();
+    $('#searchInput').on('keyup', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        filterCustomers(searchTerm);
+    });
+});
+
+function loadCustomers() {
+    $.ajax({
+        url: '/api/customers',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                customers = response.data;
+                displayCustomers(customers);
+            } else {
+                showAlert('danger', 'Failed to load customers');
+            }
+        },
+        error: function() {
+            showAlert('danger', 'Error connecting to server');
+        }
+    });
+}
+
+function displayCustomers(data) {
+    const tbody = $('#customersTableBody');
+    tbody.empty();
+    
+    if (data.length === 0) {
+        tbody.html('<tr><td colspan="6" class="text-center">No customers found</td></tr>');
+        return;
+    }
+    
+    data.forEach(customer => {
+        tbody.append(`
+            <tr>
+                <td>${customer.customer_id}</td>
+                <td>${customer.first_name} ${customer.last_name}</td>
+                <td>${customer.email}</td>
+                <td>${customer.phone_number}</td>
+                <td><span class="badge bg-primary">${customer.loyalty_points}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick='editCustomer(${JSON.stringify(customer)})'>
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${customer.customer_id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+    });
+}
+
+function filterCustomers(searchTerm) {
+    const filtered = customers.filter(c => 
+        c.first_name.toLowerCase().includes(searchTerm) ||
+        c.last_name.toLowerCase().includes(searchTerm) ||
+        c.email.toLowerCase().includes(searchTerm)
+    );
+    displayCustomers(filtered);
+}
+
+function openCustomerModal(customer = null) {
+    $('#customerModalTitle').text(customer ? 'Edit Customer' : 'Add New Customer');
+    $('#customerForm')[0].reset();
+    
+    if (customer) {
+        $('#customerId').val(customer.customer_id);
+        $('#firstName').val(customer.first_name);
+        $('#lastName').val(customer.last_name);
+        $('#email').val(customer.email);
+        $('#phoneNumber').val(customer.phone_number);
+        $('#address').val(customer.address || '');
+        $('#city').val(customer.city || '');
+        $('#state').val(customer.state || '');
+        $('#zipCode').val(customer.zip_code || '');
+    }
+}
+
+function editCustomer(customer) {
+    openCustomerModal(customer);
+    $('#customerModal').modal('show');
+}
+
+function saveCustomer() {
+    const customerId = $('#customerId').val();
+    const data = {
+        first_name: $('#firstName').val(),
+        last_name: $('#lastName').val(),
+        email: $('#email').val(),
+        phone_number: $('#phoneNumber').val(),
+        address: $('#address').val(),
+        city: $('#city').val(),
+        state: $('#state').val(),
+        zip_code: $('#zipCode').val()
+    };
+    
+    const url = customerId ? `/api/customers/${customerId}` : '/api/customers';
+    const method = customerId ? 'PUT' : 'POST';
+    
+    $.ajax({
+        url: url,
+        method: method,
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+            if (response.success) {
+                showAlert('success', customerId ? 'Customer updated!' : 'Customer created!');
+                $('#customerModal').modal('hide');
+                loadCustomers();
+            } else {
+                showAlert('danger', response.message);
+            }
+        },
+        error: function() {
+            showAlert('danger', 'Error saving customer');
+        }
+    });
+}
+
+function deleteCustomer(customerId) {
+    if (!confirm('Delete this customer?')) return;
+    
+    $.ajax({
+        url: `/api/customers/${customerId}`,
+        method: 'DELETE',
+        success: function(response) {
+            if (response.success) {
+                showAlert('success', 'Customer deleted!');
+                loadCustomers();
+            } else {
+                showAlert('danger', response.message);
+            }
+        }
+    });
+}
+
+function showAlert(type, message) {
+    const alert = $(`
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    $('#alertContainer').html(alert);
+    setTimeout(() => alert.alert('close'), 5000);
+}
+</script>
+{% endblock %}
