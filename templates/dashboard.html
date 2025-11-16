@@ -1,9 +1,492 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
-    <p class="lead">Welcome to the Restaurant Management System!</p>
-    <div class="alert alert-info">Dashboard coming soon with real-time statistics.</div>
+<div class="container-fluid" style="padding: 3rem;">
+    <!-- User Info Banner -->
+    <div class="alert" style="background: linear-gradient(135deg, #d2e3c8 0%, white 100%); border: 2px solid var(--sage); border-radius: 12px; margin-bottom: 2rem;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 style="font-weight: 700; margin-bottom: 0.25rem;">
+                    <i class="fas fa-user-circle"></i> Welcome, <span id="currentUserName">User</span>!
+                </h5>
+                <p style="margin: 0; color: var(--gray-600);">
+                    <strong>Role:</strong> <span id="currentUserRole">-</span> | 
+                    <strong>Location:</strong> <span id="currentUserLocation">-</span>
+                </p>
+            </div>
+            <span class="badge" id="currentRoleBadge" style="padding: 0.75rem 1.5rem; font-size: 1rem;">Role</span>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem;">
+            Dashboard
+        </h1>
+        <p style="color: var(--gray-600); font-size: 1.05rem;" id="dashboardSubtitle">
+            Overview of your restaurant operations
+        </p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="stat-label mb-2">Total Orders</div>
+                        <div class="stat-value" id="totalOrders">0</div>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(134,167,137,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-receipt" style="font-size: 1.5rem; color: var(--sage);"></i>
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--success);">
+                    <i class="fas fa-arrow-up"></i> 12% from last month
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="stat-label mb-2">Revenue</div>
+                        <div class="stat-value" id="totalRevenue">$0</div>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(16,185,129,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-dollar-sign" style="font-size: 1.5rem; color: var(--success);"></i>
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--success);">
+                    <i class="fas fa-arrow-up"></i> 8% from last month
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="stat-label mb-2">Customers</div>
+                        <div class="stat-value" id="totalCustomers">0</div>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(59,130,246,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-users" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--success);">
+                    <i class="fas fa-arrow-up"></i> 15 new this week
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="stat-label mb-2">Low Stock</div>
+                        <div class="stat-value" id="lowStockCount">0</div>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(239,68,68,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; color: var(--danger);"></i>
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--danger);">
+                    Requires attention
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manager-Only Section -->
+    <div id="managerSection" style="display: none;">
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-crown"></i> <strong>Manager View:</strong> You have access to advanced analytics and reports
+        </div>
+    </div>
+
+    <!-- Staff-Only Section -->
+    <div id="staffSection" style="display: none;">
+        <div class="alert alert-success mb-4">
+            <i class="fas fa-tasks"></i> <strong>Staff View:</strong> Focus on orders and customer service
+        </div>
+    </div>
+
+    <!-- Charts and Tables -->
+    <div class="row g-4">
+        <!-- Revenue Chart - Manager Only -->
+        <div class="col-lg-8" id="revenueChartSection">
+            <div class="card">
+                <div class="card-header">
+                    Revenue by Channel
+                    <span class="badge bg-primary ms-2">Manager Only</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders - All Users -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    Recent Orders
+                </div>
+                <div class="card-body">
+                    <div id="recentOrders">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Items - All Users -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    Top Menu Items
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="topItemsTable">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th class="text-end">Orders</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="3" class="text-center py-4">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock - All Users -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    Low Stock Items
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="lowStockTable">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Location</th>
+                                    <th class="text-end">Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="3" class="text-center py-4">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions - Role-Based -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    Quick Actions
+                </div>
+                <div class="card-body">
+                    <div class="row g-3" id="quickActions">
+                        <!-- Populated by JavaScript based on role -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentUser = null;
+
+$(document).ready(function() {
+    loadUserInfo();
+    loadDashboardData();
+    initializeCharts();
+});
+
+function loadUserInfo() {
+    $.get('/api/current-user', function(response) {
+        if (response.success) {
+            currentUser = response.user;
+            displayUserInfo();
+            customizeForRole();
+        }
+    });
+}
+
+function displayUserInfo() {
+    $('#currentUserName').text(currentUser.name);
+    $('#currentUserRole').text(currentUser.role);
+    $('#currentUserLocation').text(currentUser.location);
+    
+    const roleColors = {
+        'Manager': 'bg-primary',
+        'Waiter': 'bg-success',
+        'Chef': 'bg-warning',
+        'Driver': 'bg-info',
+        'Coordinator': 'bg-dark'
+    };
+    
+    $('#currentRoleBadge')
+        .text(currentUser.role)
+        .addClass(roleColors[currentUser.role] || 'bg-secondary');
+}
+
+function customizeForRole() {
+    if (currentUser.role === 'Manager') {
+        // Show manager-specific content
+        $('#managerSection').show();
+        $('#revenueChartSection').show();
+        $('#dashboardSubtitle').text('Complete overview with advanced analytics');
+        
+        // Manager quick actions
+        $('#quickActions').html(`
+            <div class="col-md-3">
+                <a href="/analytics" class="btn btn-primary w-100">
+                    <i class="fas fa-chart-line"></i> View Analytics
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="/orders" class="btn btn-success w-100">
+                    <i class="fas fa-plus"></i> New Order
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="/inventory" class="btn btn-warning w-100">
+                    <i class="fas fa-clipboard-list"></i> Inventory Report
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="/customers" class="btn btn-info w-100">
+                    <i class="fas fa-users"></i> Customer List
+                </a>
+            </div>
+        `);
+        
+    } else if (currentUser.role === 'Waiter') {
+        // Hide analytics
+        $('#revenueChartSection').hide();
+        $('#staffSection').show();
+        $('#dashboardSubtitle').text('Focus on taking orders and serving customers');
+        
+        // Waiter quick actions
+        $('#quickActions').html(`
+            <div class="col-md-4">
+                <a href="/orders" class="btn btn-success btn-lg w-100">
+                    <i class="fas fa-plus-circle"></i> New Order
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/customers" class="btn btn-info btn-lg w-100">
+                    <i class="fas fa-user-plus"></i> Add Customer
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/menu" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-book"></i> View Menu
+                </a>
+            </div>
+        `);
+        
+    } else if (currentUser.role === 'Coordinator') {
+        // Hide analytics
+        $('#revenueChartSection').hide();
+        $('#staffSection').show();
+        $('#dashboardSubtitle').text('Manage deliveries and coordinate operations');
+        
+        // Coordinator quick actions
+        $('#quickActions').html(`
+            <div class="col-md-4">
+                <a href="/orders?order_type=Delivery" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-truck"></i> Delivery Orders
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/inventory" class="btn btn-warning btn-lg w-100">
+                    <i class="fas fa-boxes"></i> Check Stock
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/customers" class="btn btn-info btn-lg w-100">
+                    <i class="fas fa-users"></i> Customers
+                </a>
+            </div>
+        `);
+        
+    } else {
+        // Default staff view
+        $('#revenueChartSection').hide();
+        $('#staffSection').show();
+        
+        $('#quickActions').html(`
+            <div class="col-md-6">
+                <a href="/orders" class="btn btn-success btn-lg w-100">
+                    <i class="fas fa-receipt"></i> View Orders
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="/inventory" class="btn btn-warning btn-lg w-100">
+                    <i class="fas fa-boxes"></i> Check Inventory
+                </a>
+            </div>
+        `);
+    }
+}
+
+function loadDashboardData() {
+    // Load orders
+    $.get('/api/orders', function(response) {
+        if (response.success) {
+            $('#totalOrders').text(response.data.length);
+            const total = response.data.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
+            $('#totalRevenue').text('$' + total.toLocaleString());
+            displayRecentOrders(response.data.slice(0, 5));
+        }
+    });
+
+    // Load customers
+    $.get('/api/customers', function(response) {
+        if (response.success) {
+            $('#totalCustomers').text(response.data.length);
+        }
+    });
+
+    // Load low stock
+    $.get('/api/inventory?low_stock=true', function(response) {
+        if (response.success) {
+            $('#lowStockCount').text(response.data.length);
+            displayLowStock(response.data.slice(0, 5));
+        }
+    });
+
+    // Load top items
+    $.get('/api/analytics/top-menu-items?limit=5', function(response) {
+        if (response.success) {
+            displayTopItems(response.data);
+        }
+    });
+}
+
+function displayRecentOrders(orders) {
+    const html = orders.map(o => `
+        <div style="padding: 1rem; border-bottom: 1px solid var(--gray-200);">
+            <div style="font-weight: 600;">${o.customer_name}</div>
+            <div style="font-size: 0.85rem; color: var(--gray-600); margin-top: 0.25rem;">
+                ${o.order_type} • $${parseFloat(o.total_amount).toFixed(2)} • ${o.status}
+            </div>
+        </div>
+    `).join('');
+    $('#recentOrders').html(html || '<p class="text-center text-muted py-4">No orders yet</p>');
+}
+
+function displayTopItems(items) {
+    const tbody = $('#topItemsTable tbody');
+    tbody.empty();
+    
+    if (items.length === 0) {
+        tbody.html('<tr><td colspan="3" class="text-center py-4">No data</td></tr>');
+        return;
+    }
+    
+    items.forEach(item => {
+        tbody.append(`
+            <tr>
+                <td><strong>${item.item_name}</strong></td>
+                <td><span class="badge bg-secondary">${item.category}</span></td>
+                <td class="text-end"><strong>${item.total_ordered}</strong></td>
+            </tr>
+        `);
+    });
+}
+
+function displayLowStock(items) {
+    const tbody = $('#lowStockTable tbody');
+    tbody.empty();
+    
+    if (items.length === 0) {
+        tbody.html('<tr><td colspan="3" class="text-center py-4">All stock levels are adequate</td></tr>');
+        return;
+    }
+    
+    items.forEach(item => {
+        tbody.append(`
+            <tr>
+                <td><strong>${item.item_name}</strong></td>
+                <td>${item.location_name}</td>
+                <td class="text-end">
+                    <span class="badge bg-danger">${item.quantity} ${item.unit}</span>
+                </td>
+            </tr>
+        `);
+    });
+}
+
+function initializeCharts() {
+    // Only load charts for managers
+    $.get('/api/current-user', function(response) {
+        if (response.success && response.user.role === 'Manager') {
+            loadRevenueChart();
+        }
+    });
+}
+
+function loadRevenueChart() {
+    $.get('/api/analytics/revenue-by-channel?start_date=2024-11-01&end_date=2024-11-30', function(response) {
+        if (response.success) {
+            const data = response.data;
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.order_type),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: data.map(d => parseFloat(d.total_revenue)),
+                        backgroundColor: [
+                            'rgba(134, 167, 137, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(59, 130, 246, 0.8)'
+                        ],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+    });
+}
+</script>
 {% endblock %}

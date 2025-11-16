@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+{% block title %}Menu Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 3rem;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem;">
+                Menu Management
+            </h1>
+            <p style="color: var(--gray-600); font-size: 1.05rem;">
+                Manage menu items, pricing, and availability
+            </p>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="openMenuModal()">
+            <i class="fas fa-plus"></i> Add Menu Item
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search menu items...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="categoryFilter">
+                        <option value="">All Categories</option>
+                        <option value="Appetizer">Appetizer</option>
+                        <option value="Main Course">Main Course</option>
+                        <option value="Dessert">Dessert</option>
+                        <option value="Beverage">Beverage</option>
+                        <option value="Side">Side</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-primary w-100" onclick="loadMenuItems()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-label">Total Items</div>
+                <div class="stat-value" id="totalItems">-</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-label">Available</div>
+                <div class="stat-value" id="availableItems">-</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-label">Avg Price</div>
+                <div class="stat-value" id="avgPrice">-</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-label">Categories</div>
+                <div class="stat-value" id="categoryCount">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Items Grid -->
+    <div class="row g-4" id="menuItemsGrid">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Loading menu items...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Menu Item Modal -->
+<div class="modal fade" id="menuModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="menuModalTitle">Add Menu Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="menuForm">
+                    <input type="hidden" id="itemId">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Item Name *</label>
+                            <input type="text" class="form-control" id="itemName" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Category *</label>
+                            <select class="form-select" id="category" required>
+                                <option value="">Select...</option>
+                                <option value="Appetizer">Appetizer</option>
+                                <option value="Main Course">Main Course</option>
+                                <option value="Dessert">Dessert</option>
+                                <option value="Beverage">Beverage</option>
+                                <option value="Side">Side</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Price ($) *</label>
+                            <input type="number" class="form-control" id="price" min="0" step="0.01" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Preparation Time (min) *</label>
+                            <input type="number" class="form-control" id="preparationTime" min="1" required>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="isAvailable" checked>
+                                <label class="form-check-label" for="isAvailable">
+                                    Available for ordering
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveMenuItem()">Save Item</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let menuItems = [];
+let filteredItems = [];
+
+$(document).ready(function() {
+    loadMenuItems();
+    
+    $('#searchInput').on('keyup', filterMenuItems);
+    $('#categoryFilter').on('change', filterMenuItems);
+});
+
+function loadMenuItems() {
+    $.get('/api/menu-items', function(response) {
+        if (response.success) {
+            menuItems = response.data;
+            filteredItems = menuItems;
+            displayMenuItems();
+            updateStats();
+        } else {
+            showAlert('error', 'Failed to load menu items');
+        }
+    });
+}
+
+function filterMenuItems() {
+    const search = $('#searchInput').val().toLowerCase();
+    const category = $('#categoryFilter').val();
+    
+    filteredItems = menuItems.filter(item => {
+        const matchesSearch = item.item_name.toLowerCase().includes(search) ||
+                            (item.description && item.description.toLowerCase().includes(search));
+        const matchesCategory = !category || item.category === category;
+        
+        return matchesSearch && matchesCategory;
+    });
+    
+    displayMenuItems();
+}
+
+function displayMenuItems() {
+    const grid = $('#menuItemsGrid');
+    grid.empty();
+    
+    if (filteredItems.length === 0) {
+        grid.html(`
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No menu items found</p>
+            </div>
+        `);
+        return;
+    }
+    
+    const categoryColors = {
+        'Appetizer': '#3b82f6',
+        'Main Course': '#10b981',
+        'Dessert': '#f59e0b',
+        'Beverage': '#06b6d4',
+        'Side': '#8b5cf6'
+    };
+    
+    filteredItems.forEach(item => {
+        const categoryColor = categoryColors[item.category] || '#6b7280';
+        const availabilityBadge = item.is_available ? 
+            '<span class="badge bg-success">Available</span>' : 
+            '<span class="badge bg-secondary">Unavailable</span>';
+        
+        grid.append(`
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge" style="background: ${categoryColor};">${item.category}</span>
+                            ${availabilityBadge}
+                        </div>
+                        <h5 style="font-weight: 700; margin-bottom: 0.5rem; min-height: 2.5rem;">${item.item_name}</h5>
+                        <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1rem; min-height: 3rem;">
+                            ${item.description || 'No description'}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <div style="font-size: 1.8rem; font-weight: 800; color: var(--sage);">
+                                    $${parseFloat(item.price).toFixed(2)}
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> ${item.preparation_time} min
+                                </small>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-info action-btn flex-fill" onclick='editMenuItem(${JSON.stringify(item)})'>
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger action-btn" onclick="deleteMenuItem(${item.item_id})" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+    });
+}
+
+function updateStats() {
+    $('#totalItems').text(menuItems.length);
+    
+    const available = menuItems.filter(item => item.is_available).length;
+    $('#availableItems').text(available);
+    
+    const avgPrice = menuItems.reduce((sum, item) => sum + parseFloat(item.price), 0) / menuItems.length;
+    $('#avgPrice').text('$' + avgPrice.toFixed(2));
+    
+    const categories = [...new Set(menuItems.map(item => item.category))].length;
+    $('#categoryCount').text(categories);
+}
+
+function openMenuModal(item = null) {
+    $('#menuModalTitle').text(item ? 'Edit Menu Item' : 'Add Menu Item');
+    $('#menuForm')[0].reset();
+    
+    if (item) {
+        $('#itemId').val(item.item_id);
+        $('#itemName').val(item.item_name);
+        $('#description').val(item.description || '');
+        $('#category').val(item.category);
+        $('#price').val(item.price);
+        $('#preparationTime').val(item.preparation_time);
+        $('#isAvailable').prop('checked', item.is_available);
+    } else {
+        $('#isAvailable').prop('checked', true);
+    }
+    
+    $('#menuModal').modal('show');
+}
+
+function editMenuItem(item) {
+    openMenuModal(item);
+}
+
+function saveMenuItem() {
+    const itemId = $('#itemId').val();
+    const data = {
+        item_name: $('#itemName').val(),
+        description: $('#description').val(),
+        category: $('#category').val(),
+        price: parseFloat($('#price').val()),
+        preparation_time: parseInt($('#preparationTime').val()),
+        is_available: $('#isAvailable').is(':checked')
+    };
+    
+    if (!data.item_name || !data.category || !data.price || !data.preparation_time) {
+        showAlert('warning', 'Please fill in all required fields');
+        return;
+    }
+    
+    const url = itemId ? `/api/menu-items/${itemId}` : '/api/menu-items';
+    const method = itemId ? 'PUT' : 'POST';
+    
+    $.ajax({
+        url: url,
+        method: method,
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+            if (response.success) {
+                showAlert('success', itemId ? 'Menu item updated!' : 'Menu item created!');
+                $('#menuModal').modal('hide');
+                loadMenuItems();
+            } else {
+                showAlert('error', response.message);
+            }
+        },
+        error: function(xhr) {
+            showAlert('error', xhr.responseJSON?.message || 'Error saving menu item');
+        }
+    });
+}
+
+function deleteMenuItem(itemId) {
+    if (!confirm('Are you sure you want to delete this menu item?')) return;
+    
+    $.ajax({
+        url: `/api/menu-items/${itemId}`,
+        method: 'DELETE',
+        success: function(response) {
+            if (response.success) {
+                showAlert('success', 'Menu item deleted!');
+                loadMenuItems();
+            } else {
+                showAlert('error', response.message);
+            }
+        },
+        error: function() {
+            showAlert('error', 'Error deleting menu item');
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -5,16 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Restaurant Management System{% endblock %}</title>
     
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
                 <i class="fas fa-utensils"></i> Restaurant Management
@@ -26,12 +24,12 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="/dashboard">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                            <i class="fas fa-th-large"></i> Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/orders">
-                            <i class="fas fa-shopping-cart"></i> Orders
+                            <i class="fas fa-receipt"></i> Orders
                         </a>
                     </li>
                     <li class="nav-item">
@@ -41,17 +39,38 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/menu">
-                            <i class="fas fa-book"></i> Menu
+                            <i class="fas fa-book-open"></i> Menu
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/inventory">
-                            <i class="fas fa-boxes"></i> Inventory
+                            <i class="fas fa-warehouse"></i> Inventory
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" id="analyticsMenuItem">
                         <a class="nav-link" href="/analytics">
-                            <i class="fas fa-chart-line"></i> Analytics
+                            <i class="fas fa-chart-bar"></i> Analytics
+                        </a>
+                    </li>
+                    
+                    <!-- Divider -->
+                    <li class="nav-item">
+                        <span class="nav-link" style="border-left: 1px solid var(--gray-300); margin: 0 0.5rem;"></span>
+                    </li>
+                    
+                    <!-- User Info -->
+                    <li class="nav-item">
+                        <span class="nav-link" style="cursor: default;">
+                            <i class="fas fa-user-circle"></i> 
+                            <strong id="userName" style="color: var(--sage);">User</strong>
+                            <small style="color: var(--gray-500); margin-left: 0.25rem;" id="userRole">-</small>
+                        </span>
+                    </li>
+                    
+                    <!-- Logout -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout" style="color: var(--danger) !important;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                     </li>
                 </ul>
@@ -59,25 +78,22 @@
         </div>
     </nav>
 
-    <!-- Alert Container -->
-    <div class="container mt-3">
-        <div id="alertContainer"></div>
-    </div>
+    <div id="alertContainer"></div>
 
-    <!-- Main Content -->
-    <main class="container-fluid mt-4">
+    <main>
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-3 mt-5">
-        <p class="mb-0">&copy; 2024 Restaurant Management System | Group: NarayananSKumariS</p>
+    <footer class="text-center">
+        <div class="container">
+            <p>CS 5200 Database Management Systems | Group: NarayananSKumariS</p>
+        </div>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

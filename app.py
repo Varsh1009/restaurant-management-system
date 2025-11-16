@@ -3,6 +3,7 @@ Restaurant Management System - Main Application
 Group: NarayananSKumariS
 """
 
+from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
 import pymysql
@@ -137,15 +138,105 @@ def call_procedure(proc_name, params=None):
             connection.close()
 
 # ============================================
+# AUTHENTICATION AND AUTHORIZATION
+# ============================================
+
+def login_required(f):
+    """Decorator to require login"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def manager_required(f):
+    """Decorator to require manager role"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        if session.get('role') != 'Manager':
+            return jsonify({'success': False, 'message': 'Manager access required'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page"""
+    if request.method == 'GET':
+        return render_template('login.html')
+    
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        
+        query = """
+            SELECT s.staff_id, s.first_name, s.last_name, s.email, s.role, 
+                   rl.location_name, s.location_id
+            FROM Staff s
+            JOIN Restaurant_Locations rl ON s.location_id = rl.location_id
+            WHERE s.email = %s AND s.status = 'Active'
+        """
+        result = execute_query(query, (email,), fetch_one=True)
+        
+        if result['success'] and result['data']:
+            user = result['data']
+            session['user_id'] = user['staff_id']
+            session['user_name'] = f"{user['first_name']} {user['last_name']}"
+            session['role'] = user['role']
+            session['location_id'] = user['location_id']
+            session['location_name'] = user['location_name']
+            
+            return jsonify({
+                'success': True,
+                'message': 'Login successful',
+                'user': {
+                    'name': session['user_name'],
+                    'role': session['role'],
+                    'location': session['location_name']
+                }
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+    
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/logout')
+def logout():
+    """Logout user"""
+    session.clear()
+    return redirect(url_for('login'))
+
+@app.route('/api/current-user')
+def current_user():
+    """Get current logged-in user info"""
+    if 'user_id' in session:
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': session['user_id'],
+                'name': session['user_name'],
+                'role': session['role'],
+                'location': session['location_name']
+            }
+        })
+    else:
+        return jsonify({'success': False, 'message': 'Not logged in'}), 401
+
+# ============================================
 # ROUTES - HOME AND DASHBOARD
 # ============================================
 
 @app.route('/')
+@login_required
 def index():
     """Home page"""
     return render_template('index.html')
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     """Main dashboard"""
     return render_template('dashboard.html')
@@ -155,11 +246,13 @@ def dashboard():
 # ============================================
 
 @app.route('/customers')
+@login_required
 def customers():
     """Customers page"""
     return render_template('customers.html')
 
 @app.route('/api/customers', methods=['GET'])
+@login_required
 def get_customers():
     """READ - Get all customers"""
     try:
@@ -192,6 +285,7 @@ def get_customers():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/customers/<int:customer_id>', methods=['GET'])
+@login_required
 def get_customer(customer_id):
     """READ - Get single customer"""
     try:
@@ -210,6 +304,7 @@ def get_customer(customer_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/customers', methods=['POST'])
+@login_required
 def create_customer():
     """CREATE - Add new customer"""
     try:
@@ -246,6 +341,7 @@ def create_customer():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/customers/<int:customer_id>', methods=['PUT'])
+@login_required
 def update_customer(customer_id):
     """UPDATE - Update customer"""
     try:
@@ -274,6 +370,7 @@ def update_customer(customer_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/customers/<int:customer_id>', methods=['DELETE'])
+@login_required
 def delete_customer(customer_id):
     """DELETE - Delete customer"""
     try:
@@ -293,11 +390,13 @@ def delete_customer(customer_id):
 # ============================================
 
 @app.route('/menu')
+@login_required
 def menu():
     """Menu page"""
     return render_template('menu.html')
 
 @app.route('/api/menu-items', methods=['GET'])
+@login_required
 def get_menu_items():
     """READ - Get all menu items"""
     try:
@@ -319,6 +418,7 @@ def get_menu_items():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/menu-items', methods=['POST'])
+@login_required
 def create_menu_item():
     """CREATE - Add new menu item"""
     try:
@@ -355,6 +455,7 @@ def create_menu_item():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/menu-items/<int:item_id>', methods=['PUT'])
+@login_required
 def update_menu_item(item_id):
     """UPDATE - Update menu item"""
     try:
@@ -383,6 +484,7 @@ def update_menu_item(item_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/menu-items/<int:item_id>', methods=['DELETE'])
+@login_required
 def delete_menu_item(item_id):
     """DELETE - Delete menu item"""
     try:
@@ -402,11 +504,13 @@ def delete_menu_item(item_id):
 # ============================================
 
 @app.route('/orders')
+@login_required
 def orders():
     """Orders page"""
     return render_template('orders.html')
 
 @app.route('/api/orders', methods=['GET'])
+@login_required
 def get_orders():
     """READ - Get all orders"""
     try:
@@ -451,6 +555,7 @@ def get_orders():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/orders/<int:order_id>', methods=['GET'])
+@login_required
 def get_order_details(order_id):
     """READ - Get order with items"""
     try:
@@ -490,6 +595,7 @@ def get_order_details(order_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/orders', methods=['POST'])
+@login_required
 def create_order():
     """CREATE - Create new order using stored procedure"""
     try:
@@ -528,6 +634,7 @@ def create_order():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/orders/<int:order_id>/items', methods=['POST'])
+@login_required
 def add_order_item(order_id):
     """CREATE - Add item to order using stored procedure"""
     try:
@@ -551,6 +658,7 @@ def add_order_item(order_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/orders/<int:order_id>/complete', methods=['POST'])
+@login_required
 def complete_order(order_id):
     """UPDATE - Complete order and process payment"""
     try:
@@ -573,6 +681,7 @@ def complete_order(order_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/orders/<int:order_id>', methods=['DELETE'])
+@login_required
 def cancel_order(order_id):
     """DELETE/UPDATE - Cancel order"""
     try:
@@ -592,11 +701,13 @@ def cancel_order(order_id):
 # ============================================
 
 @app.route('/inventory')
+@login_required
 def inventory():
     """Inventory page"""
     return render_template('inventory.html')
 
 @app.route('/api/inventory', methods=['GET'])
+@login_required
 def get_inventory():
     """READ - Get all inventory items"""
     try:
@@ -643,6 +754,7 @@ def get_inventory():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/inventory', methods=['POST'])
+@login_required
 def create_inventory_item():
     """CREATE - Add inventory item"""
     try:
@@ -673,6 +785,7 @@ def create_inventory_item():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/inventory/<int:inventory_id>', methods=['PUT'])
+@login_required
 def update_inventory_item(inventory_id):
     """UPDATE - Update inventory item"""
     try:
@@ -701,6 +814,7 @@ def update_inventory_item(inventory_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/inventory/<int:inventory_id>/restock', methods=['POST'])
+@login_required
 def restock_inventory(inventory_id):
     """UPDATE - Restock inventory using stored procedure"""
     try:
@@ -718,6 +832,7 @@ def restock_inventory(inventory_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/inventory/<int:inventory_id>', methods=['DELETE'])
+@login_required
 def delete_inventory_item(inventory_id):
     """DELETE - Delete inventory item"""
     try:
@@ -737,11 +852,14 @@ def delete_inventory_item(inventory_id):
 # ============================================
 
 @app.route('/analytics')
+@login_required
+@manager_required
 def analytics():
-    """Analytics page"""
+    """Analytics page - Manager only"""
     return render_template('analytics.html')
 
 @app.route('/api/analytics/revenue-by-channel', methods=['GET'])
+@login_required
 def revenue_by_channel():
     """Complex query - Revenue analysis by order channel"""
     try:
@@ -774,6 +892,7 @@ def revenue_by_channel():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/analytics/top-menu-items', methods=['GET'])
+@login_required
 def top_menu_items():
     """Complex query - Most ordered menu items"""
     try:
@@ -808,6 +927,7 @@ def top_menu_items():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/analytics/delivery-performance', methods=['GET'])
+@login_required
 def delivery_performance():
     """Complex query - Delivery cost vs revenue analysis"""
     try:
@@ -850,6 +970,7 @@ def delivery_performance():
 # ============================================
 
 @app.route('/api/locations', methods=['GET'])
+@login_required
 def get_locations():
     """Get all restaurant locations"""
     try:
@@ -865,6 +986,7 @@ def get_locations():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/staff', methods=['GET'])
+@login_required
 def get_staff():
     """Get all staff members"""
     try:

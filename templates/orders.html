@@ -1,0 +1,745 @@
+{% extends "base.html" %}
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 3rem;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem;">
+                Orders
+            </h1>
+            <p style="color: var(--gray-600); font-size: 1.05rem;">
+                Manage dine-in, pickup, and delivery orders
+            </p>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="openNewOrderModal()">
+            <i class="fas fa-plus"></i> New Order
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search orders...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="orderTypeFilter">
+                        <option value="">All Order Types</option>
+                        <option value="Dine-In">Dine-In</option>
+                        <option value="Pickup">Pickup</option>
+                        <option value="Delivery">Delivery</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Preparing">Preparing</option>
+                        <option value="Ready">Ready</option>
+                        <option value="In Transit">In Transit</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-outline-primary w-100" onclick="loadOrders()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-label">Total Orders</div>
+                <div class="stat-value" id="totalOrders">-</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-value" id="totalRevenue">-</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-label">Pending Orders</div>
+                <div class="stat-value" id="pendingOrders">-</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-label">Avg Order Value</div>
+                <div class="stat-value" id="avgOrderValue">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr><td colspan="8" class="text-center py-5">Loading orders...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Order Modal -->
+<div class="modal fade" id="newOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <!-- Step 1: Order Details -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">Order Details</div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Customer *</label>
+                                    <select class="form-select" id="customerId" required>
+                                        <option value="">Select customer...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Order Type *</label>
+                                    <select class="form-select" id="orderType" required>
+                                        <option value="">Select type...</option>
+                                        <option value="Dine-In">Dine-In</option>
+                                        <option value="Pickup">Pickup</option>
+                                        <option value="Delivery">Delivery</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Location *</label>
+                                    <select class="form-select" id="locationId" required>
+                                        <option value="">Select location...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3" id="tableSection" style="display:none;">
+                                    <label class="form-label">Table</label>
+                                    <select class="form-select" id="tableId">
+                                        <option value="">Select table...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3" id="deliverySection" style="display:none;">
+                                    <label class="form-label">Delivery Address</label>
+                                    <textarea class="form-control" id="deliveryAddress" rows="2"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Staff Member</label>
+                                    <select class="form-select" id="staffId">
+                                        <option value="">Select staff...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Add Items -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">Add Items</div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Menu Item</label>
+                                    <select class="form-select" id="menuItemId">
+                                        <option value="">Select item...</option>
+                                    </select>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-8">
+                                        <label class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" id="itemQuantity" min="1" value="1">
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button class="btn btn-success w-100" onclick="addItemToOrder()">
+                                            <i class="fas fa-plus"></i> Add
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Special Requests</label>
+                                    <textarea class="form-control" id="specialRequests" rows="2"></textarea>
+                                </div>
+
+                                <hr>
+
+                                <h6 style="font-weight: 700; margin-bottom: 1rem;">Order Items</h6>
+                                <div id="orderItemsList" style="max-height: 300px; overflow-y: auto;">
+                                    <p class="text-muted text-center">No items added yet</p>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 style="font-weight: 700;">Total:</h5>
+                                    <h4 style="font-weight: 800; color: var(--sage);" id="orderTotal">$0.00</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="createOrder()">Create Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderDetailsContent">
+                Loading...
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Order Modal -->
+<div class="modal fade" id="completeOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Complete Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="completeOrderId">
+                <div class="mb-3">
+                    <label class="form-label">Payment Method *</label>
+                    <select class="form-select" id="paymentMethod" required>
+                        <option value="">Select payment method...</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Digital Wallet">Digital Wallet</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tip Amount</label>
+                    <input type="number" class="form-control" id="tipAmount" min="0" step="0.01" value="0">
+                </div>
+                <div class="alert alert-info">
+                    <strong>Order Total:</strong> <span id="completeOrderTotal">$0.00</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-success" onclick="completeOrder()">Complete Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let orders = [];
+let orderItems = [];
+let orderTotal = 0;
+let customers = [];
+let locations = [];
+let menuItems = [];
+let staff = [];
+let tables = [];
+
+$(document).ready(function() {
+    loadOrders();
+    loadCustomers();
+    loadLocations();
+    loadMenuItems();
+    loadStaff();
+    
+    $('#searchInput').on('keyup', filterOrders);
+    $('#orderTypeFilter, #statusFilter').on('change', filterOrders);
+    $('#orderType').on('change', handleOrderTypeChange);
+});
+
+function loadOrders() {
+    $.get('/api/orders', function(response) {
+        if (response.success) {
+            orders = response.data;
+            displayOrders(orders);
+            updateStats();
+        }
+    });
+}
+
+function displayOrders(data) {
+    const tbody = $('#ordersTableBody');
+    tbody.empty();
+    
+    if (data.length === 0) {
+        tbody.html('<tr><td colspan="8" class="text-center py-5">No orders found</td></tr>');
+        return;
+    }
+    
+    data.forEach(o => {
+        const statusColors = {
+            'Pending': 'warning',
+            'Preparing': 'info',
+            'Ready': 'primary',
+            'In Transit': 'info',
+            'Delivered': 'success',
+            'Completed': 'success',
+            'Cancelled': 'danger'
+        };
+        
+        const typeIcons = {
+            'Dine-In': 'utensils',
+            'Pickup': 'shopping-bag',
+            'Delivery': 'truck'
+        };
+        
+        tbody.append(`
+            <tr>
+                <td><strong>#${o.order_id}</strong></td>
+                <td>${formatDate(o.order_date)}</td>
+                <td>${o.customer_name}</td>
+                <td>
+                    <i class="fas fa-${typeIcons[o.order_type]}"></i> ${o.order_type}
+                </td>
+                <td>${o.location_name}</td>
+                <td><strong>$${parseFloat(o.total_amount).toFixed(2)}</strong></td>
+                <td>
+                    <span class="badge bg-${statusColors[o.status]}">${o.status}</span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-info action-btn" onclick="viewOrderDetails(${o.order_id})" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${o.status === 'Pending' || o.status === 'Preparing' ? `
+                        <button class="btn btn-sm btn-success action-btn" onclick="openCompleteModal(${o.order_id}, ${o.total_amount})" title="Complete">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    ` : ''}
+                    ${o.status === 'Pending' ? `
+                        <button class="btn btn-sm btn-danger action-btn" onclick="cancelOrder(${o.order_id})" title="Cancel">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `);
+    });
+}
+
+function filterOrders() {
+    const search = $('#searchInput').val().toLowerCase();
+    const typeFilter = $('#orderTypeFilter').val();
+    const statusFilter = $('#statusFilter').val();
+    
+    const filtered = orders.filter(o => {
+        const matchesSearch = 
+            o.customer_name.toLowerCase().includes(search) ||
+            o.order_id.toString().includes(search);
+        const matchesType = !typeFilter || o.order_type === typeFilter;
+        const matchesStatus = !statusFilter || o.status === statusFilter;
+        
+        return matchesSearch && matchesType && matchesStatus;
+    });
+    
+    displayOrders(filtered);
+}
+
+function updateStats() {
+    $('#totalOrders').text(orders.length);
+    const total = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+    $('#totalRevenue').text('$' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+    const pending = orders.filter(o => o.status === 'Pending' || o.status === 'Preparing').length;
+    $('#pendingOrders').text(pending);
+    const avg = total / orders.length;
+    $('#avgOrderValue').text('$' + avg.toFixed(2));
+}
+
+function loadCustomers() {
+    $.get('/api/customers', function(response) {
+        if (response.success) {
+            customers = response.data;
+            const select = $('#customerId');
+            select.empty().append('<option value="">Select customer...</option>');
+            customers.forEach(c => {
+                select.append(`<option value="${c.customer_id}">${c.first_name} ${c.last_name}</option>`);
+            });
+        }
+    });
+}
+
+function loadLocations() {
+    $.get('/api/locations', function(response) {
+        if (response.success) {
+            locations = response.data;
+            const select = $('#locationId');
+            select.empty().append('<option value="">Select location...</option>');
+            locations.forEach(l => {
+                select.append(`<option value="${l.location_id}">${l.location_name}</option>`);
+            });
+        }
+    });
+}
+
+function loadMenuItems() {
+    $.get('/api/menu-items', function(response) {
+        if (response.success) {
+            menuItems = response.data;
+            const select = $('#menuItemId');
+            select.empty().append('<option value="">Select item...</option>');
+            menuItems.forEach(m => {
+                select.append(`<option value="${m.item_id}" data-price="${m.price}">${m.item_name} - $${m.price}</option>`);
+            });
+        }
+    });
+}
+
+function loadStaff() {
+    $.get('/api/staff', function(response) {
+        if (response.success) {
+            staff = response.data;
+            const select = $('#staffId');
+            select.empty().append('<option value="">Select staff...</option>');
+            staff.forEach(s => {
+                select.append(`<option value="${s.staff_id}">${s.first_name} ${s.last_name} (${s.role})</option>`);
+            });
+        }
+    });
+}
+
+function handleOrderTypeChange() {
+    const orderType = $('#orderType').val();
+    
+    if (orderType === 'Dine-In') {
+        $('#tableSection').show();
+        $('#deliverySection').hide();
+        loadTablesForLocation();
+    } else if (orderType === 'Delivery') {
+        $('#tableSection').hide();
+        $('#deliverySection').show();
+    } else {
+        $('#tableSection').hide();
+        $('#deliverySection').hide();
+    }
+}
+
+function loadTablesForLocation() {
+    const locationId = $('#locationId').val();
+    if (!locationId) return;
+    
+    // In a real implementation, you'd fetch tables for the specific location
+    const tableSelect = $('#tableId');
+    tableSelect.empty().append('<option value="">Select table...</option>');
+    for (let i = 1; i <= 10; i++) {
+        tableSelect.append(`<option value="${i}">Table ${i}</option>`);
+    }
+}
+
+function openNewOrderModal() {
+    orderItems = [];
+    orderTotal = 0;
+    updateOrderItemsList();
+    $('#newOrderModal').modal('show');
+}
+
+function addItemToOrder() {
+    const itemId = $('#menuItemId').val();
+    const quantity = parseInt($('#itemQuantity').val());
+    const specialReq = $('#specialRequests').val();
+    
+    if (!itemId || !quantity) {
+        showAlert('warning', 'Please select an item and quantity');
+        return;
+    }
+    
+    const selectedOption = $('#menuItemId option:selected');
+    const itemName = selectedOption.text().split(' - ')[0];
+    const price = parseFloat(selectedOption.data('price'));
+    const subtotal = price * quantity;
+    
+    orderItems.push({
+        item_id: itemId,
+        item_name: itemName,
+        quantity: quantity,
+        unit_price: price,
+        subtotal: subtotal,
+        special_requests: specialReq
+    });
+    
+    orderTotal += subtotal;
+    
+    updateOrderItemsList();
+    
+    // Reset form
+    $('#menuItemId').val('');
+    $('#itemQuantity').val(1);
+    $('#specialRequests').val('');
+}
+
+function updateOrderItemsList() {
+    const container = $('#orderItemsList');
+    
+    if (orderItems.length === 0) {
+        container.html('<p class="text-muted text-center">No items added yet</p>');
+        $('#orderTotal').text('$0.00');
+        return;
+    }
+    
+    let html = '';
+    orderItems.forEach((item, index) => {
+        html += `
+            <div class="d-flex justify-content-between align-items-center mb-3 p-2" style="background: var(--gray-100); border-radius: 8px;">
+                <div>
+                    <strong>${item.item_name}</strong> x ${item.quantity}
+                    ${item.special_requests ? `<br><small class="text-muted">${item.special_requests}</small>` : ''}
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <strong>$${item.subtotal.toFixed(2)}</strong>
+                    <button class="btn btn-sm btn-danger" onclick="removeItem(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.html(html);
+    $('#orderTotal').text('$' + orderTotal.toFixed(2));
+}
+
+function removeItem(index) {
+    orderTotal -= orderItems[index].subtotal;
+    orderItems.splice(index, 1);
+    updateOrderItemsList();
+}
+
+function createOrder() {
+    const customerId = $('#customerId').val();
+    const locationId = $('#locationId').val();
+    const orderType = $('#orderType').val();
+    
+    if (!customerId || !locationId || !orderType) {
+        showAlert('warning', 'Please fill in all required fields');
+        return;
+    }
+    
+    if (orderItems.length === 0) {
+        showAlert('warning', 'Please add at least one item');
+        return;
+    }
+    
+    // Step 1: Create order using stored procedure
+    const orderData = {
+        customer_id: customerId,
+        location_id: locationId,
+        order_type: orderType,
+        table_id: $('#tableId').val() || null,
+        delivery_address: $('#deliveryAddress').val() || null,
+        staff_id: $('#staffId').val() || null
+    };
+    
+    $.ajax({
+        url: '/api/orders',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(orderData),
+        success: function(response) {
+            if (response.success) {
+                const orderId = response.order_id;
+                
+                // Step 2: Add items to order
+                addItemsToOrder(orderId);
+            } else {
+                showAlert('error', response.message);
+            }
+        },
+        error: function() {
+            showAlert('error', 'Error creating order');
+        }
+    });
+}
+
+function addItemsToOrder(orderId) {
+    let itemsAdded = 0;
+    
+    orderItems.forEach(item => {
+        $.ajax({
+            url: `/api/orders/${orderId}/items`,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(item),
+            success: function() {
+                itemsAdded++;
+                
+                if (itemsAdded === orderItems.length) {
+                    showAlert('success', 'Order created successfully!');
+                    $('#newOrderModal').modal('hide');
+                    loadOrders();
+                }
+            }
+        });
+    });
+}
+
+function viewOrderDetails(orderId) {
+    $.get(`/api/orders/${orderId}`, function(response) {
+        if (response.success) {
+            const order = response.data;
+            
+            let itemsHtml = '';
+            order.items.forEach(item => {
+                itemsHtml += `
+                    <tr>
+                        <td>${item.item_name}</td>
+                        <td>${item.quantity}</td>
+                        <td>$${parseFloat(item.unit_price).toFixed(2)}</td>
+                        <td>$${parseFloat(item.subtotal).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            const html = `
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <p><strong>Order ID:</strong> #${order.order_id}</p>
+                        <p><strong>Customer:</strong> ${order.customer_name}</p>
+                        <p><strong>Email:</strong> ${order.customer_email}</p>
+                        <p><strong>Type:</strong> ${order.order_type}</p>
+                        <p><strong>Location:</strong> ${order.location_name}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Date:</strong> ${formatDate(order.order_date)}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-primary">${order.status}</span></p>
+                        <p><strong>Total:</strong> $${parseFloat(order.total_amount).toFixed(2)}</p>
+                        ${order.delivery_address ? `<p><strong>Delivery:</strong> ${order.delivery_address}</p>` : ''}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6 style="font-weight: 700; margin-bottom: 1rem;">Order Items</h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr style="font-weight: 700;">
+                            <td colspan="3" class="text-end">Total:</td>
+                            <td>$${parseFloat(order.total_amount).toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+            
+            $('#orderDetailsContent').html(html);
+            $('#orderDetailsModal').modal('show');
+        }
+    });
+}
+
+function openCompleteModal(orderId, total) {
+    $('#completeOrderId').val(orderId);
+    $('#completeOrderTotal').text('$' + parseFloat(total).toFixed(2));
+    $('#completeOrderModal').modal('show');
+}
+
+function completeOrder() {
+    const orderId = $('#completeOrderId').val();
+    const paymentMethod = $('#paymentMethod').val();
+    const tipAmount = parseFloat($('#tipAmount').val()) || 0;
+    
+    if (!paymentMethod) {
+        showAlert('warning', 'Please select a payment method');
+        return;
+    }
+    
+    $.ajax({
+        url: `/api/orders/${orderId}/complete`,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            payment_method: paymentMethod,
+            tip_amount: tipAmount
+        }),
+        success: function(response) {
+            if (response.success) {
+                showAlert('success', 'Order completed successfully!');
+                $('#completeOrderModal').modal('hide');
+                loadOrders();
+            } else {
+                showAlert('error', response.message);
+            }
+        },
+        error: function() {
+            showAlert('error', 'Error completing order');
+        }
+    });
+}
+
+function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+    
+    $.ajax({
+        url: `/api/orders/${orderId}`,
+        method: 'DELETE',
+        success: function() {
+            showAlert('success', 'Order cancelled');
+            loadOrders();
+        }
+    });
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+}
+</script>
+{% endblock %}

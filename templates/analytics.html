@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+{% block title %}Analytics & Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 3rem;">
+    <div class="mb-4">
+        <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem;">
+            Analytics & Reports
+        </h1>
+        <p style="color: var(--gray-600); font-size: 1.05rem;">
+            Revenue insights and performance metrics
+        </p>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="startDate" value="2024-11-01">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="endDate" value="2024-11-30">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary w-100" onclick="loadAnalytics()">
+                        <i class="fas fa-sync"></i> Update Reports
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value" id="totalRevenue">$0</div>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(134,167,137,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-dollar-sign" style="font-size: 1.5rem; color: var(--sage);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-value" id="totalOrders">0</div>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(16,185,129,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-shopping-cart" style="font-size: 1.5rem; color: var(--success);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-label">Avg Order Value</div>
+                        <div class="stat-value" id="avgOrderValue">$0</div>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(245,158,11,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-chart-line" style="font-size: 1.5rem; color: var(--warning);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-label">Total Tips</div>
+                        <div class="stat-value" id="totalTips">$0</div>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(59,130,246,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-hand-holding-usd" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    Revenue by Order Channel
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueByChannelChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    Order Distribution
+                </div>
+                <div class="card-body">
+                    <canvas id="orderDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    Top Selling Menu Items
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th class="text-end">Orders</th>
+                                    <th class="text-end">Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topItemsTable">
+                                <tr><td colspan="5" class="text-center py-4">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    Delivery Performance Analysis
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Customer</th>
+                                    <th class="text-end">Revenue</th>
+                                    <th class="text-end">Cost</th>
+                                    <th class="text-end">Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deliveryPerformanceTable">
+                                <tr><td colspan="5" class="text-center py-4">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Details -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    Revenue Breakdown by Channel
+                </div>
+                <div class="card-body">
+                    <div id="revenueBreakdown">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let revenueData = [];
+let topItemsData = [];
+let deliveryData = [];
+
+$(document).ready(function() {
+    loadAnalytics();
+});
+
+function loadAnalytics() {
+    const startDate = $('#startDate').val();
+    const endDate = $('#endDate').val();
+    
+    // Load revenue by channel
+    $.get(`/api/analytics/revenue-by-channel?start_date=${startDate}&end_date=${endDate}`, function(response) {
+        if (response.success) {
+            revenueData = response.data;
+            updateKeyMetrics();
+            createRevenueChart();
+            createOrderDistributionChart();
+            displayRevenueBreakdown();
+        }
+    });
+    
+    // Load top menu items
+    $.get('/api/analytics/top-menu-items?limit=10', function(response) {
+        if (response.success) {
+            topItemsData = response.data;
+            displayTopItems();
+        }
+    });
+    
+    // Load delivery performance
+    $.get('/api/analytics/delivery-performance', function(response) {
+        if (response.success) {
+            deliveryData = response.data;
+            displayDeliveryPerformance();
+        }
+    });
+}
+
+function updateKeyMetrics() {
+    const totalRevenue = revenueData.reduce((sum, d) => sum + parseFloat(d.total_revenue || 0), 0);
+    const totalOrders = revenueData.reduce((sum, d) => sum + parseInt(d.order_count || 0), 0);
+    const totalTips = revenueData.reduce((sum, d) => sum + parseFloat(d.total_tips || 0), 0);
+    const avgValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    
+    $('#totalRevenue').text('$' + totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2}));
+    $('#totalOrders').text(totalOrders.toLocaleString());
+    $('#avgOrderValue').text('$' + avgValue.toFixed(2));
+    $('#totalTips').text('$' + totalTips.toLocaleString(undefined, {minimumFractionDigits: 2}));
+}
+
+function createRevenueChart() {
+    const ctx = document.getElementById('revenueByChannelChart').getContext('2d');
+    
+    // Destroy existing chart if any
+    if (window.revenueChart) {
+        window.revenueChart.destroy();
+    }
+    
+    window.revenueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: revenueData.map(d => d.order_type),
+            datasets: [
+                {
+                    label: 'Revenue',
+                    data: revenueData.map(d => parseFloat(d.total_revenue)),
+                    backgroundColor: [
+                        'rgba(134, 167, 137, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(59, 130, 246, 0.8)'
+                    ],
+                    borderRadius: 8,
+                    barThickness: 60
+                },
+                {
+                    label: 'Tips',
+                    data: revenueData.map(d => parseFloat(d.total_tips || 0)),
+                    backgroundColor: [
+                        'rgba(134, 167, 137, 0.4)',
+                        'rgba(16, 185, 129, 0.4)',
+                        'rgba(59, 130, 246, 0.4)'
+                    ],
+                    borderRadius: 8,
+                    barThickness: 60
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#f1f5f9'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createOrderDistributionChart() {
+    const ctx = document.getElementById('orderDistributionChart').getContext('2d');
+    
+    if (window.distributionChart) {
+        window.distributionChart.destroy();
+    }
+    
+    window.distributionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: revenueData.map(d => d.order_type),
+            datasets: [{
+                data: revenueData.map(d => parseInt(d.order_count)),
+                backgroundColor: [
+                    'rgba(134, 167, 137, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(59, 130, 246, 0.8)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function displayRevenueBreakdown() {
+    const container = $('#revenueBreakdown');
+    
+    if (revenueData.length === 0) {
+        container.html('<p class="text-center text-muted">No data available</p>');
+        return;
+    }
+    
+    let html = '<div class="row g-4">';
+    
+    revenueData.forEach(channel => {
+        const revenue = parseFloat(channel.total_revenue);
+        const orders = parseInt(channel.order_count);
+        const avgValue = parseFloat(channel.avg_order_value);
+        const tips = parseFloat(channel.total_tips || 0);
+        
+        const colors = {
+            'Dine-In': 'var(--sage)',
+            'Pickup': 'var(--success)',
+            'Delivery': '#3b82f6'
+        };
+        
+        const color = colors[channel.order_type] || 'var(--gray-600)';
+        
+        html += `
+            <div class="col-md-4">
+                <div class="card" style="border-left: 4px solid ${color};">
+                    <div class="card-body">
+                        <h5 style="font-weight: 700; margin-bottom: 1.5rem;">
+                            <i class="fas fa-${channel.order_type === 'Dine-In' ? 'utensils' : channel.order_type === 'Pickup' ? 'shopping-bag' : 'truck'}"></i>
+                            ${channel.order_type}
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <small class="text-muted">Revenue</small>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: ${color};">
+                                    $${revenue.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Orders</small>
+                                <div style="font-size: 1.5rem; font-weight: 700;">
+                                    ${orders}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Avg Order</small>
+                                <div style="font-size: 1.2rem; font-weight: 600;">
+                                    $${avgValue.toFixed(2)}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Tips</small>
+                                <div style="font-size: 1.2rem; font-weight: 600;">
+                                    $${tips.toFixed(2)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.html(html);
+}
+
+function displayTopItems() {
+    const tbody = $('#topItemsTable');
+    tbody.empty();
+    
+    if (topItemsData.length === 0) {
+        tbody.html('<tr><td colspan="5" class="text-center py-4">No data</td></tr>');
+        return;
+    }
+    
+    const categoryColors = {
+        'Appetizer': '#3b82f6',
+        'Main Course': '#10b981',
+        'Dessert': '#f59e0b',
+        'Beverage': '#06b6d4',
+        'Side': '#8b5cf6'
+    };
+    
+    topItemsData.forEach((item, index) => {
+        const color = categoryColors[item.category] || '#6b7280';
+        const revenue = parseFloat(item.total_revenue);
+        const ordered = parseInt(item.total_ordered);
+        
+        tbody.append(`
+            <tr>
+                <td>
+                    <div style="width: 30px; height: 30px; background: ${color}; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+                        ${index + 1}
+                    </div>
+                </td>
+                <td><strong>${item.item_name}</strong></td>
+                <td><span class="badge" style="background: ${color};">${item.category}</span></td>
+                <td class="text-end"><strong>${ordered}</strong></td>
+                <td class="text-end"><strong>$${revenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</strong></td>
+            </tr>
+        `);
+    });
+}
+
+function displayDeliveryPerformance() {
+    const tbody = $('#deliveryPerformanceTable');
+    tbody.empty();
+    
+    if (deliveryData.length === 0) {
+        tbody.html('<tr><td colspan="5" class="text-center py-4">No delivery data</td></tr>');
+        return;
+    }
+    
+    deliveryData.slice(0, 10).forEach(delivery => {
+        const revenue = parseFloat(delivery.revenue);
+        const cost = parseFloat(delivery.estimated_delivery_cost || 0);
+        const profit = parseFloat(delivery.net_profit || 0);
+        const profitColor = profit > 0 ? 'var(--success)' : 'var(--danger)';
+        
+        tbody.append(`
+            <tr>
+                <td><strong>#${delivery.order_id}</strong></td>
+                <td>${delivery.customer_name}</td>
+                <td class="text-end">$${revenue.toFixed(2)}</td>
+                <td class="text-end">$${cost.toFixed(2)}</td>
+                <td class="text-end" style="color: ${profitColor}; font-weight: 700;">
+                    $${profit.toFixed(2)}
+                </td>
+            </tr>
+        `);
+    });
+}
+</script>
+{% endblock %}

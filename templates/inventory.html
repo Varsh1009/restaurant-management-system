@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+{% block title %}Inventory Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 3rem;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem;">
+                Inventory Management
+            </h1>
+            <p style="color: var(--gray-600); font-size: 1.05rem;">
+                Monitor stock levels and manage suppliers
+            </p>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="openInventoryModal()">
+            <i class="fas fa-plus"></i> Add Inventory Item
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search inventory...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="locationFilter">
+                        <option value="">All Locations</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="stockFilter">
+                        <option value="">All Stock Levels</option>
+                        <option value="low">Low Stock Only</option>
+                        <option value="ok">Adequate Stock</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-outline-primary w-100" onclick="loadInventory()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-label">Total Items</div>
+                <div class="stat-value" id="totalItems">-</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-label">Low Stock Items</div>
+                <div class="stat-value" id="lowStockCount" style="color: var(--danger);">-</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-label">Total Value</div>
+                <div class="stat-value" id="totalValue">-</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-label">Suppliers</div>
+                <div class="stat-value" id="supplierCount">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>Location</th>
+                            <th>Quantity</th>
+                            <th>Min Stock</th>
+                            <th>Supplier</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        <tr><td colspan="9" class="text-center py-5">Loading inventory...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Inventory Modal -->
+<div class="modal fade" id="inventoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inventoryModalTitle">Add Inventory Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="inventoryForm">
+                    <input type="hidden" id="inventoryId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Item Name *</label>
+                            <input type="text" class="form-control" id="itemName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Category *</label>
+                            <input type="text" class="form-control" id="itemCategory" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Location *</label>
+                            <select class="form-select" id="itemLocation" required>
+                                <option value="">Select location...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Supplier</label>
+                            <input type="text" class="form-control" id="supplierName">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Quantity *</label>
+                            <input type="number" class="form-control" id="quantity" min="0" step="0.01" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Unit *</label>
+                            <input type="text" class="form-control" id="unit" placeholder="lbs, pcs, kg..." required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Min Stock Level *</label>
+                            <input type="number" class="form-control" id="minStockLevel" min="0" step="0.01" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Unit Cost ($)</label>
+                            <input type="number" class="form-control" id="unitCost" min="0" step="0.01">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveInventoryItem()">Save Item</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Restock Modal -->
+<div class="modal fade" id="restockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Restock Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="restockInventoryId">
+                <div class="mb-3">
+                    <p><strong>Item:</strong> <span id="restockItemName"></span></p>
+                    <p><strong>Current Quantity:</strong> <span id="restockCurrentQty"></span></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Quantity Received *</label>
+                    <input type="number" class="form-control" id="quantityReceived" min="0.01" step="0.01" required>
+                </div>
+                <div class="alert alert-info">
+                    <strong>New Quantity:</strong> 
+                    <span id="newQuantity">-</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-success" onclick="restockItem()">
+                    <i class="fas fa-box"></i> Restock
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let inventory = [];
+let filteredInventory = [];
+let locations = [];
+
+$(document).ready(function() {
+    loadInventory();
+    loadLocations();
+    
+    $('#searchInput').on('keyup', filterInventory);
+    $('#locationFilter, #stockFilter').on('change', filterInventory);
+    
+    $('#quantityReceived').on('input', function() {
+        const current = parseFloat($('#restockCurrentQty').text()) || 0;
+        const received = parseFloat($(this).val()) || 0;
+        $('#newQuantity').text((current + received).toFixed(2));
+    });
+});
+
+function loadInventory() {
+    $.get('/api/inventory', function(response) {
+        if (response.success) {
+            inventory = response.data;
+            filteredInventory = inventory;
+            displayInventory();
+            updateStats();
+        } else {
+            showAlert('error', 'Failed to load inventory');
+        }
+    });
+}
+
+function loadLocations() {
+    $.get('/api/locations', function(response) {
+        if (response.success) {
+            locations = response.data;
+            
+            // Populate location filters
+            const locationFilter = $('#locationFilter');
+            const itemLocation = $('#itemLocation');
+            
+            locations.forEach(l => {
+                locationFilter.append(`<option value="${l.location_id}">${l.location_name}</option>`);
+                itemLocation.append(`<option value="${l.location_id}">${l.location_name}</option>`);
+            });
+        }
+    });
+}
+
+function filterInventory() {
+    const search = $('#searchInput').val().toLowerCase();
+    const location = $('#locationFilter').val();
+    const stockLevel = $('#stockFilter').val();
+    
+    filteredInventory = inventory.filter(item => {
+        const matchesSearch = item.item_name.toLowerCase().includes(search) ||
+                            item.category.toLowerCase().includes(search);
+        const matchesLocation = !location || item.location_id == location;
+        
+        let matchesStock = true;
+        if (stockLevel === 'low') {
+            matchesStock = parseFloat(item.quantity) < parseFloat(item.minimum_stock_level);
+        } else if (stockLevel === 'ok') {
+            matchesStock = parseFloat(item.quantity) >= parseFloat(item.minimum_stock_level);
+        }
+        
+        return matchesSearch && matchesLocation && matchesStock;
+    });
+    
+    displayInventory();
+}
+
+function displayInventory() {
+    const tbody = $('#inventoryTableBody');
+    tbody.empty();
+    
+    if (filteredInventory.length === 0) {
+        tbody.html('<tr><td colspan="9" class="text-center py-5">No inventory items found</td></tr>');
+        return;
+    }
+    
+    filteredInventory.forEach(item => {
+        const qty = parseFloat(item.quantity);
+        const minQty = parseFloat(item.minimum_stock_level);
+        const isLowStock = qty < minQty;
+        const stockPercentage = (qty / minQty * 100).toFixed(0);
+        
+        const statusBadge = isLowStock ? 
+            '<span class="badge bg-danger"><i class="fas fa-exclamation-triangle"></i> Low Stock</span>' :
+            '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Adequate</span>';
+        
+        tbody.append(`
+            <tr style="${isLowStock ? 'background: #fef2f2;' : ''}">
+                <td><strong>${item.inventory_id}</strong></td>
+                <td><strong>${item.item_name}</strong></td>
+                <td><span class="badge bg-secondary">${item.category}</span></td>
+                <td>${item.location_name}</td>
+                <td>
+                    <strong>${qty} ${item.unit}</strong>
+                    ${isLowStock ? `<br><small class="text-danger">${stockPercentage}% of minimum</small>` : ''}
+                </td>
+                <td>${minQty} ${item.unit}</td>
+                <td>${item.supplier_name || 'N/A'}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <button class="btn btn-sm btn-success action-btn" onclick='openRestockModal(${JSON.stringify(item)})' title="Restock">
+                        <i class="fas fa-box"></i>
+                    </button>
+                    <button class="btn btn-sm btn-info action-btn" onclick='editInventoryItem(${JSON.stringify(item)})' title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger action-btn" onclick="deleteInventoryItem(${item.inventory_id})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+    });
+}
+
+function updateStats() {
+    $('#totalItems').text(inventory.length);
+    
+    const lowStock = inventory.filter(item => 
+        parseFloat(item.quantity) < parseFloat(item.minimum_stock_level)
+    ).length;
+    $('#lowStockCount').text(lowStock);
+    
+    const totalValue = inventory.reduce((sum, item) => {
+        const qty = parseFloat(item.quantity) || 0;
+        const cost = parseFloat(item.unit_cost) || 0;
+        return sum + (qty * cost);
+    }, 0);
+    $('#totalValue').text('$' + totalValue.toLocaleString(undefined, {minimumFractionDigits: 2}));
+    
+    const suppliers = [...new Set(inventory.map(item => item.supplier_name).filter(s => s))].length;
+    $('#supplierCount').text(suppliers);
+}
+
+function openInventoryModal(item = null) {
+    $('#inventoryModalTitle').text(item ? 'Edit Inventory Item' : 'Add Inventory Item');
+    $('#inventoryForm')[0].reset();
+    
+    if (item) {
+        $('#inventoryId').val(item.inventory_id);
+        $('#itemName').val(item.item_name);
+        $('#itemCategory').val(item.category);
+        $('#itemLocation').val(item.location_id);
+        $('#quantity').val(item.quantity);
+        $('#unit').val(item.unit);
+        $('#minStockLevel').val(item.minimum_stock_level);
+        $('#supplierName').val(item.supplier_name || '');
+        $('#unitCost').val(item.unit_cost || '');
+    }
+    
+    $('#inventoryModal').modal('show');
+}
+
+function editInventoryItem(item) {
+    openInventoryModal(item);
+}
+
+function saveInventoryItem() {
+    const inventoryId = $('#inventoryId').val();
+    const data = {
+        item_name: $('#itemName').val(),
+        category: $('#itemCategory').val(),
+        location_id: $('#itemLocation').val(),
+        quantity: parseFloat($('#quantity').val()),
+        unit: $('#unit').val(),
+        minimum_stock_level: parseFloat($('#minStockLevel').val()),
+        supplier_name: $('#supplierName').val(),
+        unit_cost: $('#unitCost').val() ? parseFloat($('#unitCost').val()) : null
+    };
+    
+    if (!data.item_name || !data.category || !data.location_id || !data.unit) {
+        showAlert('warning', 'Please fill in all required fields');
+        return;
+    }
+    
+    const url = inventoryId ? `/api/inventory/${inventoryId}` : '/api/inventory';
+    const method = inventoryId ? 'PUT' : 'POST';
+    
+    $.ajax({
+        url: url,
+        method: method,
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+            if (response.success) {
+                showAlert('success', inventoryId ? 'Inventory updated!' : 'Inventory item created!');
+                $('#inventoryModal').modal('hide');
+                loadInventory();
+            } else {
+                showAlert('error', response.message);
+            }
+        },
+        error: function(xhr) {
+            showAlert('error', xhr.responseJSON?.message || 'Error saving inventory');
+        }
+    });
+}
+
+function openRestockModal(item) {
+    $('#restockInventoryId').val(item.inventory_id);
+    $('#restockItemName').text(item.item_name);
+    $('#restockCurrentQty').text(item.quantity + ' ' + item.unit);
+    $('#quantityReceived').val('');
+    $('#newQuantity').text('-');
+    $('#restockModal').modal('show');
+}
+
+function restockItem() {
+    const inventoryId = $('#restockInventoryId').val();
+    const quantityReceived = parseFloat($('#quantityReceived').val());
+    
+    if (!quantityReceived || quantityReceived <= 0) {
+        showAlert('warning', 'Please enter a valid quantity');
+        return;
+    }
+    
+    // Call stored procedure sp_UpdateInventory
+    $.ajax({
+        url: `/api/inventory/${inventoryId}/restock`,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            quantity_received: quantityReceived
+        }),
+        success: function(response) {
+            if (response.success) {
+                showAlert('success', 'Inventory restocked successfully!');
+                $('#restockModal').modal('hide');
+                loadInventory();
+            } else {
+                showAlert('error', response.message);
+            }
+        },
+        error: function() {
+            showAlert('error', 'Error restocking inventory');
+        }
+    });
+}
+
+function deleteInventoryItem(inventoryId) {
+    if (!confirm('Are you sure you want to delete this inventory item?')) return;
+    
+    $.ajax({
+        url: `/api/inventory/${inventoryId}`,
+        method: 'DELETE',
+        success: function(response) {
+            if (response.success) {
+                showAlert('success', 'Inventory item deleted!');
+                loadInventory();
+            } else {
+                showAlert('error', response.message);
+            }
+        },
+        error: function() {
+            showAlert('error', 'Error deleting inventory item');
+        }
+    });
+}
+</script>
+{% endblock %}
