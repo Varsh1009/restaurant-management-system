@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory - Restaurant Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Inventory Management</h1>
+</div>
+
+<!-- Low Stock Alerts -->
+{% if low_stock %}
+<div class="card" style="border-left: 4px solid #e74c3c;">
+    <div class="card-header" style="color: #e74c3c;">⚠️ Low Stock Alerts</div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Current Stock</th>
+                <th>Minimum Level</th>
+                <th>Stock %</th>
+                <th>Supplier</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in low_stock %}
+            <tr>
+                <td><strong>{{ item.item_name }}</strong></td>
+                <td>{{ item.quantity if item.quantity is not none else 0 }} {{ item.unit }}</td>
+                <td>{{ item.minimum_stock_level if item.minimum_stock_level is not none else 0 }} {{ item.unit }}</td>
+                <td>
+                    <span class="badge badge-danger">{{ "%.1f"|format(item.stock_percentage if item.stock_percentage is not none else 0) }}%</span>
+                </td>
+                <td>{{ item.supplier_name if item.supplier_name else 'N/A' }}</td>
+                <td>
+                    <button onclick="showRestockModal({{ item.inventory_id }}, '{{ item.item_name }}')" 
+                            class="btn btn-sm btn-primary">Restock</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- All Inventory -->
+<div class="card">
+    <div class="card-header">All Inventory Items</div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Min Level</th>
+                <th>Supplier</th>
+                <th>Unit Cost</th>
+                <th>Last Restocked</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in inventory %}
+            <tr>
+                <td>{{ item.item_name }}</td>
+                <td>{{ item.category }}</td>
+                <td>{{ item.quantity if item.quantity is not none else 0 }} {{ item.unit }}</td>
+                <td>{{ item.minimum_stock_level if item.minimum_stock_level is not none else 0 }} {{ item.unit }}</td>
+                <td>{{ item.supplier_name if item.supplier_name else 'N/A' }}</td>
+                <td>${{ "%.2f"|format(item.unit_cost if item.unit_cost is not none else 0) }}</td>
+                <td>{{ item.last_restocked_date if item.last_restocked_date else 'Never' }}</td>
+                <td>
+                    <button onclick="showRestockModal({{ item.inventory_id }}, '{{ item.item_name }}')" 
+                            class="btn btn-sm">Update</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Restock Modal -->
+<div id="restockModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="background: white; max-width: 500px; margin: 100px auto; padding: 2rem; border-radius: 8px;">
+        <h3 id="modalTitle">Restock Item</h3>
+        <form method="POST" id="restockForm">
+            <div class="form-group">
+                <label>Quantity Received</label>
+                <input type="number" name="quantity" class="form-control" step="0.01" min="0.01" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Stock</button>
+            <button type="button" onclick="closeRestockModal()" class="btn">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function showRestockModal(id, name) {
+    document.getElementById('modalTitle').textContent = 'Restock: ' + name;
+    document.getElementById('restockForm').action = '/inventory/' + id + '/update';
+    document.getElementById('restockModal').style.display = 'block';
+}
+
+function closeRestockModal() {
+    document.getElementById('restockModal').style.display = 'none';
+}
+</script>
+{% endblock %}

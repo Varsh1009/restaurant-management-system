@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Orders - Restaurant Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Orders</h1>
+    <a href="{{ url_for('new_order') }}" class="btn btn-primary">➕ New Order</a>
+</div>
+
+<div class="card">
+    <div class="card-header">All Orders</div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>#{{ order.order_id }}</td>
+                <td>{{ order.customer_name }}</td>
+                <td>{{ order.phone_number }}</td>
+                <td>{{ order.order_type }}</td>
+                <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                <td>
+                    <span class="badge badge-{{ 'success' if order.status in ['Completed', 'Delivered'] else 'warning' }}">
+                        {{ order.status }}
+                    </span>
+                </td>
+                <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a href="{{ url_for('view_order', order_id=order.order_id) }}" class="btn btn-sm">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

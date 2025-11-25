@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Restaurant Management{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📊 Reports & Analytics</h1>
+</div>
+
+<!-- Revenue by Channel -->
+<div class="card">
+    <div class="card-header">Revenue by Order Type</div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Table -->
+        <div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order Type</th>
+                        <th>Total Revenue</th>
+                        <th>Order Count</th>
+                        <th>Avg Order Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in channel_data %}
+                    <tr>
+                        <td><strong>{{ data.order_type }}</strong></td>
+                        <td>${{ "%.2f"|format(data.revenue) }}</td>
+                        <td>{{ data.order_count }}</td>
+                        <td>${{ "%.2f"|format(data.avg_order_value) }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not channel_data %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #999;">No data available</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pie Chart -->
+        <div>
+            <div id="revenueChart" style="width: 100%; height: 400px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Selling Items -->
+{% if top_items %}
+<div class="card">
+    <div class="card-header">Top 10 Selling Items</div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Table -->
+        <div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Item</th>
+                        <th>Quantity Sold</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_items %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ item.item_name }}</td>
+                        <td>{{ item.total_quantity }}</td>
+                        <td>${{ "%.2f"|format(item.total_revenue) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Bar Chart -->
+        <div>
+            <div id="itemsChart" style="width: 100%; height: 400px;"></div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Daily Revenue Trend -->
+{% if daily_trend and daily_trend|length > 0 %}
+<div class="card">
+    <div class="card-header">Daily Revenue Trend by Order Type</div>
+    <div id="trendChart" style="width: 100%; height: 450px;"></div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-header">Daily Revenue Trend</div>
+    <p style="padding: 2rem; text-align: center; color: #999;">
+        📈 No trend data available yet. Complete orders to see the trend chart.
+    </p>
+</div>
+{% endif %}
+
+<!-- Top Customers -->
+<div class="card">
+    <div class="card-header">Top 10 Customers by Loyalty Points</div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Customer</th>
+                <th>Loyalty Points</th>
+                <th>Total Orders</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in top_customers %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ customer.first_name }} {{ customer.last_name }}</td>
+                <td>
+                    <span class="badge badge-success">{{ customer.loyalty_points }} pts</span>
+                </td>
+                <td>{{ customer.total_orders }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+console.log('📊 Reports page JavaScript loading...');
+
+// ========== REVENUE PIE CHART ==========
+{% if channel_data and channel_data|length > 0 %}
+try {
+    console.log('Channel data available:', {{ channel_data|length }}, 'items');
+    
+    var revenueData = [{
+        values: [
+            {% for data in channel_data %}
+            {{ data.revenue }}{{ "," if not loop.last }}
+            {% endfor %}
+        ],
+        labels: [
+            {% for data in channel_data %}
+            '{{ data.order_type }}'{{ "," if not loop.last }}
+            {% endfor %}
+        ],
+        type: 'pie',
+        marker: {
+            colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe']
+        },
+        textinfo: 'label+percent+value',
+        textposition: 'outside',
+        hovertemplate: '<b>%{label}</b><br>Revenue: $%{value:.2f}<br>%{percent}<extra></extra>'
+    }];
+
+    var revenueLayout = {
+        title: {
+            text: 'Revenue Distribution by Order Type',
+            font: { size: 16 }
+        },
+        showlegend: true,
+        height: 400,
+        margin: { t: 60, b: 20, l: 20, r: 20 }
+    };
+
+    Plotly.newPlot('revenueChart', revenueData, revenueLayout, {responsive: true});
+    console.log('✅ Pie chart rendered successfully');
+} catch (e) {
+    console.error('❌ Error rendering pie chart:', e);
+}
+{% else %}
+console.log('⚠️ No channel data available for pie chart');
+{% endif %}
+
+// ========== TOP ITEMS BAR CHART ==========
+{% if top_items and top_items|length > 0 %}
+try {
+    console.log('Top items available:', {{ top_items|length }}, 'items');
+    
+    var itemsData = [{
+        x: [
+            {% for item in top_items %}
+            '{{ item.item_name }}'{{ "," if not loop.last }}
+            {% endfor %}
+        ],
+        y: [
+            {% for item in top_items %}
+            {{ item.total_revenue }}{{ "," if not loop.last }}
+            {% endfor %}
+        ],
+        type: 'bar',
+        marker: {
+            color: '#667eea',
+            line: { color: '#5568d3', width: 1.5 }
+        },
+        text: [
+            {% for item in top_items %}
+            '${{ "%.2f"|format(item.total_revenue) }}'{{ "," if not loop.last }}
+            {% endfor %}
+        ],
+        textposition: 'outside',
+        hovertemplate: '<b>%{x}</b><br>Revenue: $%{y:.2f}<extra></extra>'
+    }];
+
+    var itemsLayout = {
+        title: {
+            text: 'Top Selling Items by Revenue',
+            font: { size: 16 }
+        },
+        xaxis: { 
+            title: 'Item',
+            tickangle: -45
+        },
+        yaxis: { title: 'Revenue ($)' },
+        height: 400,
+        margin: { t: 60, b: 120, l: 60, r: 20 }
+    };
+
+    Plotly.newPlot('itemsChart', itemsData, itemsLayout, {responsive: true});
+    console.log('✅ Bar chart rendered successfully');
+} catch (e) {
+    console.error('❌ Error rendering bar chart:', e);
+}
+{% else %}
+console.log('⚠️ No top items data available for bar chart');
+{% endif %}
+
+// ========== DAILY TREND LINE CHART ==========
+{% if daily_trend and daily_trend|length > 0 %}
+try {
+    console.log('Daily trend data available:', {{ daily_trend|length }}, 'records');
+    
+    // Group data by order type
+    var trendByType = {};
+    {% for record in daily_trend %}
+    var orderType = '{{ record.order_type }}';
+    if (!trendByType[orderType]) {
+        trendByType[orderType] = {
+            dates: [],
+            revenues: []
+        };
+    }
+    trendByType[orderType].dates.push('{{ record.date }}');
+    trendByType[orderType].revenues.push({{ record.revenue }});
+    {% endfor %}
+
+    console.log('Grouped by order type:', Object.keys(trendByType));
+
+    // Create traces for each order type
+    var trendData = [];
+    var colors = {
+        'Dine-In': '#667eea',
+        'Pickup': '#764ba2',
+        'Delivery': '#f093fb'
+    };
+
+    for (var orderType in trendByType) {
+        // Reverse arrays to show chronological order
+        var dates = trendByType[orderType].dates.slice().reverse();
+        var revenues = trendByType[orderType].revenues.slice().reverse();
+        
+        trendData.push({
+            x: dates,
+            y: revenues,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: orderType,
+            line: {
+                color: colors[orderType] || '#95a5a6',
+                width: 3
+            },
+            marker: {
+                size: 8,
+                line: {
+                    color: '#fff',
+                    width: 2
+                }
+            },
+            hovertemplate: '<b>%{fullData.name}</b><br>Date: %{x}<br>Revenue: $%{y:.2f}<extra></extra>'
+        });
+    }
+
+    console.log('Created', trendData.length, 'traces for line chart');
+
+    var trendLayout = {
+        title: {
+            text: 'Daily Revenue Trend by Order Type',
+            font: { size: 16 }
+        },
+        xaxis: { 
+            title: 'Date',
+            type: 'date'
+        },
+        yaxis: { 
+            title: 'Revenue ($)'
+        },
+        height: 450,
+        showlegend: true,
+        legend: {
+            x: 0,
+            y: 1,
+            bgcolor: 'rgba(255,255,255,0.8)',
+            bordercolor: '#ddd',
+            borderwidth: 1
+        },
+        hovermode: 'closest',
+        margin: { t: 60, b: 80, l: 60, r: 20 }
+    };
+
+    Plotly.newPlot('trendChart', trendData, trendLayout, {responsive: true});
+    console.log('✅ Line chart rendered successfully');
+} catch (e) {
+    console.error('❌ Error rendering line chart:', e);
+}
+{% else %}
+console.log('⚠️ No daily trend data available for line chart');
+{% endif %}
+
+console.log('📊 Reports page JavaScript complete');
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}New Order - Restaurant Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Create New Order</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">Order Details</div>
+    
+    <form method="POST" action="{{ url_for('new_order') }}">
+        <div class="form-group">
+            <label for="customer_id">Customer *</label>
+            <select name="customer_id" id="customer_id" class="form-control" required>
+                <option value="">-- Select Customer --</option>
+                {% for customer in customers %}
+                <option value="{{ customer.customer_id }}">
+                    {{ customer.first_name }} {{ customer.last_name }} ({{ customer.email }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="order_type">Order Type *</label>
+            <select name="order_type" id="order_type" class="form-control" required onchange="toggleFields()">
+                <option value="">-- Select Type --</option>
+                <option value="Dine-In">Dine-In</option>
+                <option value="Pickup">Pickup</option>
+                <option value="Delivery">Delivery</option>
+            </select>
+        </div>
+        
+        <div class="form-group" id="table_field" style="display: none;">
+            <label for="table_id">Table</label>
+            <select name="table_id" id="table_id" class="form-control">
+                <option value="">-- Select Table --</option>
+                {% for table in tables %}
+                <option value="{{ table.table_id }}">
+                    Table {{ table.table_number }} ({{ table.seating_capacity }} seats)
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group" id="delivery_field" style="display: none;">
+            <label for="delivery_address">Delivery Address</label>
+            <textarea name="delivery_address" id="delivery_address" class="form-control" rows="3"></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Create Order & Add Items</button>
+        <a href="{{ url_for('orders_list') }}" class="btn">Cancel</a>
+    </form>
+</div>
+
+<script>
+function toggleFields() {
+    const orderType = document.getElementById('order_type').value;
+    const tableField = document.getElementById('table_field');
+    const deliveryField = document.getElementById('delivery_field');
+    
+    tableField.style.display = orderType === 'Dine-In' ? 'block' : 'none';
+    deliveryField.style.display = orderType === 'Delivery' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

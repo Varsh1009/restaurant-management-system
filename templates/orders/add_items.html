@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Add Items - Restaurant Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Add Items to Order #{{ order_id }}</h1>
+    <div>
+        <strong>Current Total:</strong> ${{ "%.2f"|format(order.total_amount) }}
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Add Items Form -->
+    <div class="card">
+        <div class="card-header">Select Menu Items</div>
+        
+        <form method="POST" action="{{ url_for('add_items', order_id=order_id) }}">
+            <div class="form-group">
+                <label for="item_id">Menu Item *</label>
+                <select name="item_id" id="item_id" class="form-control" required>
+                    <option value="">-- Select Item --</option>
+                    {% for item in menu_items %}
+                    <option value="{{ item.item_id }}" data-price="{{ item.price }}">
+                        {{ item.item_name }} - ${{ "%.2f"|format(item.price) }} ({{ item.category }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Quantity *</label>
+                <input type="number" name="quantity" id="quantity" class="form-control" 
+                       min="1" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="special_requests">Special Requests</label>
+                <textarea name="special_requests" id="special_requests" 
+                          class="form-control" rows="2"></textarea>
+            </div>
+            
+            <button type="submit" name="action" value="add" class="btn btn-success">
+                ➕ Add Item
+            </button>
+            <button type="submit" name="action" value="finish" class="btn btn-primary">
+                ✅ Finish Order
+            </button>
+        </form>
+    </div>
+    
+    <!-- Current Order Items -->
+    <div class="card">
+        <div class="card-header">Order Items</div>
+        
+        {% if order_items %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_items %}
+                <tr>
+                    <td>{{ item.item_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ "%.2f"|format(item.subtotal) }}</td>
+                </tr>
+                {% endfor %}
+                <tr style="font-weight: bold;">
+                    <td colspan="2">Total:</td>
+                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                </tr>
+            </tbody>
+        </table>
+        {% else %}
+        <p style="padding: 1rem; text-align: center; color: #999;">
+            No items added yet
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

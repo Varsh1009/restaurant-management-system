@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart - Restaurant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>🛒 Your Cart</h1>
+            <a href="{{ url_for('customer_menu') }}" class="btn">← Back to Menu</a>
+        </div>
+
+        {% if cart %}
+        <div class="card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart %}
+                    <tr>
+                        <td>{{ item.item_name }}</td>
+                        <td>${{ "%.2f"|format(item.price) }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr style="font-weight: bold; font-size: 1.3rem; background-color: #f8f9fa;">
+                        <td colspan="3" style="text-align: right;">Total:</td>
+                        <td>${{ "%.2f"|format(total) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="text-align: right; margin-top: 1rem;">
+                <a href="{{ url_for('checkout') }}" class="btn btn-success" style="font-size: 1.1rem;">
+                    Proceed to Checkout →
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <p style="text-align: center; padding: 2rem; color: #999;">
+                Your cart is empty. <a href="{{ url_for('customer_menu') }}">Browse menu</a>
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

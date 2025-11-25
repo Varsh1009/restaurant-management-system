@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Deliveries - Restaurant Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🚗 Delivery Management</h1>
+</div>
+
+<!-- Available Drivers -->
+<div class="card">
+    <div class="card-header">Available Drivers</div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        {% for driver in drivers %}
+        <div style="padding: 1rem; background-color: {{ '#d4edda' if driver.current_status == 'Available' else '#f8d7da' }}; border-radius: 8px;">
+            <strong>{{ driver.driver_name }}</strong><br>
+            <small>Status: {{ driver.current_status }}</small><br>
+            <small>Rating: ⭐ {{ "%.1f"|format(driver.rating) }}</small>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Pending Deliveries -->
+<div class="card">
+    <div class="card-header">Delivery Orders</div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Address</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Driver</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for delivery in deliveries %}
+            <tr>
+                <td>#{{ delivery.order_id }}</td>
+                <td>
+                    {{ delivery.customer_name }}<br>
+                    <small>{{ delivery.phone_number }}</small>
+                </td>
+                <td>{{ delivery.delivery_address }}</td>
+                <td>${{ "%.2f"|format(delivery.total_amount) }}</td>
+                <td>
+                    <span class="badge badge-{{ 'success' if delivery.status == 'Delivered' else 'warning' }}">
+                        {{ delivery.status }}
+                    </span>
+                </td>
+                <td>
+                    {% if delivery.driver_name %}
+                        {{ delivery.driver_name }}
+                        <br><small>{{ delivery.driver_status }}</small>
+                    {% else %}
+                        <span style="color: #e74c3c;">Not assigned</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if delivery.status == 'Pending' and not delivery.driver_name %}
+                    <form method="POST" action="{{ url_for('assign_driver', order_id=delivery.order_id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-success">Assign Driver</button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('view_order', order_id=delivery.order_id) }}" class="btn btn-sm">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

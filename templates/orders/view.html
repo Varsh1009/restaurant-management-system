@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.order_id }} - Restaurant Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Order #{{ order.order_id }}</h1>
+    <a href="{{ url_for('orders_list') }}" class="btn">← Back to Orders</a>
+</div>
+<div class="page-header">
+    <h1>Order #{{ order.order_id }}</h1>
+    <div>
+        <a href="{{ url_for('orders_list') }}" class="btn">← Back to Orders</a>
+        {% if order.status not in ['Completed', 'Delivered', 'Cancelled'] %}
+        <form method="POST" action="{{ url_for('cancel_order', order_id=order.order_id) }}" 
+              style="display: inline;" 
+              onsubmit="return confirm('Are you sure you want to cancel this order?')">
+            <button type="submit" class="btn btn-danger">Cancel Order</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+<!-- Status Update Section (NEW!) -->
+{% if order.status not in ['Completed', 'Delivered', 'Cancelled'] %}
+<div class="card" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1;">
+            <strong>Current Status: {{ order.status }}</strong>
+        </div>
+        
+        <!-- Quick Status Update -->
+        <form method="POST" action="{{ url_for('update_order_status', order_id=order.order_id) }}" style="display: inline;">
+            <select name="status" class="form-control" style="width: auto; display: inline-block;" onchange="this.form.submit()">
+                <option value="">-- Update Status --</option>
+                <option value="Pending" {% if order.status == 'Pending' %}disabled{% endif %}>Pending</option>
+                <option value="Preparing" {% if order.status == 'Preparing' %}disabled{% endif %}>Preparing</option>
+                <option value="Ready" {% if order.status == 'Ready' %}disabled{% endif %}>Ready</option>
+                {% if order.order_type == 'Delivery' %}
+                <option value="In Transit" {% if order.status == 'In Transit' %}disabled{% endif %}>In Transit</option>
+                <option value="Delivered" {% if order.status == 'Delivered' %}disabled{% endif %}>Delivered</option>
+                {% endif %}
+            </select>
+        </form>
+        
+        <!-- Complete Order Button -->
+        {% if not payment %}
+        <button onclick="document.getElementById('paymentModal').style.display='block'" class="btn btn-success">
+            ✓ Complete & Process Payment
+        </button>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Payment Modal (NEW!) -->
+<div id="paymentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+    <div style="background: white; max-width: 500px; margin: 100px auto; padding: 2rem; border-radius: 8px;">
+        <h3>Complete Order & Process Payment</h3>
+        <form method="POST" action="{{ url_for('complete_order', order_id=order.order_id) }}">
+            <div class="form-group">
+                <label>Payment Method *</label>
+                <select name="payment_method" class="form-control" required>
+                    <option value="">-- Select Method --</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Debit Card">Debit Card</option>
+                    <option value="Digital Wallet">Digital Wallet</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Tip Amount ($)</label>
+                <input type="number" name="tip_amount" class="form-control" 
+                       step="0.01" min="0" value="0" placeholder="0.00">
+            </div>
+            
+            <div style="background-color: #ecf0f1; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                <strong>Order Total: ${{ "%.2f"|format(order.total_amount) }}</strong>
+            </div>
+            
+            <button type="submit" class="btn btn-success">Complete Order</button>
+            <button type="button" onclick="document.getElementById('paymentModal').style.display='none'" class="btn">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<!-- Rest of your existing code -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Order Details -->
+    <div>
+        <div class="card">
+            <div class="card-header">Order Information</div>
+            
+            <table style="width: 100%;">
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold; width: 150px;">Order Type:</td>
+                    <td style="padding: 0.5rem;">{{ order.order_type }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Status:</td>
+                    <td style="padding: 0.5rem;">
+                        <span class="badge badge-{{ 'success' if order.status in ['Completed', 'Delivered'] else 'warning' }}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Order Date:</td>
+                    <td style="padding: 0.5rem;">{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Customer:</td>
+                    <td style="padding: 0.5rem;">{{ order.customer_name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Phone:</td>
+                    <td style="padding: 0.5rem;">{{ order.phone_number }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Email:</td>
+                    <td style="padding: 0.5rem;">{{ order.email }}</td>
+                </tr>
+                {% if order.table_number %}
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Table:</td>
+                    <td style="padding: 0.5rem;">{{ order.table_number }}</td>
+                </tr>
+                {% endif %}
+                {% if order.delivery_address %}
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Delivery Address:</td>
+                    <td style="padding: 0.5rem;">{{ order.delivery_address }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Served By:</td>
+                    <td style="padding: 0.5rem;">{{ order.staff_name }}</td>
+                </tr>
+                {% if order.special_instructions %}
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Special Instructions:</td>
+                    <td style="padding: 0.5rem;">{{ order.special_instructions }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="card">
+            <div class="card-header">Order Items</div>
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            {{ item.item_name }}
+                            {% if item.special_requests %}
+                            <br><small style="color: #999;">Note: {{ item.special_requests }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.category }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ "%.2f"|format(item.unit_price) }}</td>
+                        <td>${{ "%.2f"|format(item.subtotal) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr style="font-weight: bold; background-color: #f8f9fa;">
+                        <td colspan="4" style="text-align: right;">Total:</td>
+                        <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Summary -->
+    <div>
+        <div class="card">
+            <div class="card-header">Payment Summary</div>
+            
+            {% if payment %}
+            <table style="width: 100%;">
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Subtotal:</td>
+                    <td style="padding: 0.5rem; text-align: right;">${{ "%.2f"|format(payment.amount) }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem; font-weight: bold;">Tip:</td>
+                    <td style="padding: 0.5rem; text-align: right;">${{ "%.2f"|format(payment.tip_amount) }}</td>
+                </tr>
+                <tr style="font-size: 1.2rem; font-weight: bold; border-top: 2px solid #ddd;">
+                    <td style="padding: 0.5rem;">Total:</td>
+                    <td style="padding: 0.5rem; text-align: right;">
+                        ${{ "%.2f"|format(payment.amount + payment.tip_amount) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 0.5rem;">
+                        <div style="margin-top: 1rem; padding: 0.5rem; background-color: #ecf0f1; border-radius: 4px;">
+                            <strong>Payment Method:</strong><br>
+                            {{ payment.payment_method }}
+                        </div>
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background-color: #d4edda; border-radius: 4px;">
+                            <strong>Status:</strong><br>
+                            {{ payment.payment_status }}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            {% else %}
+            <p style="padding: 1rem; text-align: center; color: #999;">
+                Payment not processed yet
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
