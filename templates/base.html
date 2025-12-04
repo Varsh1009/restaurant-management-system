@@ -18,17 +18,31 @@
                 <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
                 
                 {% if session.user.role == 'Manager' %}
-                    <a href="{{ url_for('reports') }}" class="nav-link">Reports</a>
-                    <a href="{{ url_for('inventory_list') }}" class="nav-link">Inventory</a>
+                <a href="{{ url_for('reports') }}" class="nav-link">Reports</a>
+                <a href="{{ url_for('inventory_list') }}" class="nav-link">Inventory</a>
+                <a href="{{ url_for('reservations_list') }}" class="nav-link">Reservations</a>
+                
+                <!-- Admin Dropdown -->
+                <div class="nav-dropdown">
+                    <button class="nav-link dropdown-btn">Admin ▼</button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('staff_list') }}">👥 Staff</a>
+                        <a href="{{ url_for('shifts_list') }}">⏰ Shifts</a>
+                        <a href="{{ url_for('vehicles_list') }}">🚗 Vehicles</a>
+                        <a href="{{ url_for('delivery_agents_list') }}">🚚 Delivery Agents</a>
+                    </div>
+                </div>
                 {% endif %}
                 
                 {% if session.user.role in ['Manager', 'Waiter'] %}
-                    <a href="{{ url_for('orders_list') }}" class="nav-link">Orders</a>
-                    <a href="{{ url_for('customers_list') }}" class="nav-link">Customers</a>
+                <a href="{{ url_for('orders_list') }}" class="nav-link">Orders</a>
+                <a href="{{ url_for('customers_list') }}" class="nav-link">Customers</a>
                 {% endif %}
                 
                 {% if session.user.role == 'Coordinator' %}
-                    <a href="{{ url_for('deliveries') }}" class="nav-link">Deliveries</a>
+                <a href="{{ url_for('deliveries') }}" class="nav-link">Deliveries</a>
+                <a href="{{ url_for('delivery_agents_list') }}" class="nav-link">Delivery Agents</a>
+                <a href="{{ url_for('vehicles_list') }}" class="nav-link">Vehicles</a>
                 {% endif %}
                 
                 <div class="nav-user">
@@ -39,22 +53,22 @@
         </div>
     </nav>
     {% endif %}
-    
+
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                        <button class="alert-close" onclick="this.parentElement.remove()">×</button>
-                    </div>
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                    <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+                </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
         
         {% block content %}{% endblock %}
     </div>
-    
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>

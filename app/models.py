@@ -181,12 +181,59 @@ class InventoryModel:
     
     @staticmethod
     def restock(inventory_id, quantity):
-        """Restock inventory item"""
+        """Restock inventory item (quick update)"""
         try:
             Database.call_procedure('sp_UpdateInventory', (inventory_id, quantity))
             return True
         except Exception as e:
             print(f"Error restocking: {e}")
+            raise
+    
+    # ✅ NEW METHODS FOR FULL CRUD
+    @staticmethod
+    def get_by_id(inventory_id):
+        """Get single inventory item by ID"""
+        try:
+            result = Database.call_procedure('sp_GetInventoryItemById', (inventory_id,))
+            return result[0] if result else None
+        except Exception as e:
+            print(f"Error getting inventory item: {e}")
+            raise
+    
+    @staticmethod
+    def create(location_id, item_name, category, quantity, unit, 
+               minimum_stock_level, supplier_name, unit_cost):
+        """Create new inventory item"""
+        try:
+            result = Database.call_procedure('sp_AddInventoryItem', 
+                (location_id, item_name, category, quantity, unit, 
+                 minimum_stock_level, supplier_name, unit_cost))
+            return result[0]['inventory_id'] if result else None
+        except Exception as e:
+            print(f"Error adding inventory item: {e}")
+            raise
+    
+    @staticmethod
+    def update_item(inventory_id, item_name, category, quantity, unit,
+                    minimum_stock_level, supplier_name, unit_cost):
+        """Update inventory item details (full edit)"""
+        try:
+            Database.call_procedure('sp_UpdateInventoryItem',
+                (inventory_id, item_name, category, quantity, unit,
+                 minimum_stock_level, supplier_name, unit_cost))
+            return True
+        except Exception as e:
+            print(f"Error updating inventory item: {e}")
+            raise
+    
+    @staticmethod
+    def delete(inventory_id):
+        """Delete inventory item"""
+        try:
+            Database.call_procedure('sp_DeleteInventoryItem', (inventory_id,))
+            return True
+        except Exception as e:
+            print(f"Error deleting inventory item: {e}")
             raise
 
 
@@ -238,6 +285,15 @@ class ReservationModel:
             raise
     
     @staticmethod
+    def get_all(location_id):
+        """✅ NEW: Get all reservations (including past)"""
+        try:
+            return Database.call_procedure('sp_GetAllReservations', (location_id,))
+        except Exception as e:
+            print(f"Error getting all reservations: {e}")
+            raise
+    
+    @staticmethod
     def create(customer_id, table_id, date, time, party_size, special_requests):
         """Create new reservation"""
         try:
@@ -268,6 +324,15 @@ class DeliveryModel:
             return Database.call_procedure('sp_GetAvailableDrivers', (location_id,))
         except Exception as e:
             print(f"Error getting available drivers: {e}")
+            raise
+    
+    @staticmethod
+    def get_all_agents():
+        """✅ NEW: Get all delivery agents with details"""
+        try:
+            return Database.call_procedure('sp_GetAllDeliveryAgents', ())
+        except Exception as e:
+            print(f"Error getting all delivery agents: {e}")
             raise
 
 
@@ -343,4 +408,72 @@ class ReportModel:
             return Database.call_procedure('sp_GetTopCustomers', ())
         except Exception as e:
             print(f"Error getting top customers: {e}")
+            raise
+
+
+# ==================== ✅ NEW MODEL CLASSES ====================
+
+class StaffModel:
+    """Staff operations - ALL using stored procedures"""
+    
+    @staticmethod
+    def get_all():
+        """Get all staff across all locations"""
+        try:
+            return Database.call_procedure('sp_GetAllStaff', ())
+        except Exception as e:
+            print(f"Error getting staff: {e}")
+            raise
+    
+    @staticmethod
+    def get_by_location(location_id):
+        """Get staff by location"""
+        try:
+            return Database.call_procedure('sp_GetStaffByLocation', (location_id,))
+        except Exception as e:
+            print(f"Error getting staff by location: {e}")
+            raise
+
+
+class ShiftModel:
+    """Shift operations - ALL using stored procedures"""
+    
+    @staticmethod
+    def get_all(location_id):
+        """Get all shifts for a location"""
+        try:
+            return Database.call_procedure('sp_GetAllShifts', (location_id,))
+        except Exception as e:
+            print(f"Error getting shifts: {e}")
+            raise
+    
+    @staticmethod
+    def get_upcoming(location_id):
+        """Get upcoming shifts for a location"""
+        try:
+            return Database.call_procedure('sp_GetUpcomingShifts', (location_id,))
+        except Exception as e:
+            print(f"Error getting upcoming shifts: {e}")
+            raise
+
+
+class VehicleModel:
+    """Vehicle operations - ALL using stored procedures"""
+    
+    @staticmethod
+    def get_all():
+        """Get all vehicles across all locations"""
+        try:
+            return Database.call_procedure('sp_GetAllVehicles', ())
+        except Exception as e:
+            print(f"Error getting vehicles: {e}")
+            raise
+    
+    @staticmethod
+    def get_by_location(location_id):
+        """Get vehicles by location"""
+        try:
+            return Database.call_procedure('sp_GetVehiclesByLocation', (location_id,))
+        except Exception as e:
+            print(f"Error getting vehicles by location: {e}")
             raise

@@ -7,15 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
+    <div class="page-wrapper">
         <div class="page-header">
             <h1>🛒 Your Cart</h1>
-            <a href="{{ url_for('customer_menu') }}" class="btn">← Back to Menu</a>
+            <a href="{{ url_for('customer_menu') }}" class="button">← Back to Menu</a>
         </div>
 
         {% if cart %}
-        <div class="card">
-            <table class="table">
+        <div class="content-box">
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Item</th>
@@ -40,14 +40,14 @@
                 </tbody>
             </table>
             
-            <div style="text-align: right; margin-top: 1rem;">
-                <a href="{{ url_for('checkout') }}" class="btn btn-success" style="font-size: 1.1rem;">
+            <div style="text-align: right; margin-top: 1rem; padding: 1rem;">
+                <a href="{{ url_for('checkout') }}" class="button button-success" style="font-size: 1.1rem; padding: 0.75rem 2rem;">
                     Proceed to Checkout →
                 </a>
             </div>
         </div>
         {% else %}
-        <div class="card">
+        <div class="content-box">
             <p style="text-align: center; padding: 2rem; color: #999;">
                 Your cart is empty. <a href="{{ url_for('customer_menu') }}">Browse menu</a>
             </p>

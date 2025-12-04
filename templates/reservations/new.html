@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}New Reservation - Restaurant Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Create New Reservation</h1>
+</div>
+
+<div class="content-box">
+    <div class="box-header">Reservation Details</div>
+    
+    <form method="POST" action="{{ url_for('new_reservation') }}">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="field-group">
+                <label for="customer_id">Customer *</label>
+                <select name="customer_id" id="customer_id" class="input-field" required>
+                    <option value="">-- Select Customer --</option>
+                    {% for customer in customers %}
+                    <option value="{{ customer.customer_id }}">
+                        {{ customer.first_name }} {{ customer.last_name }} ({{ customer.phone_number }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="field-group">
+                <label for="table_id">Table *</label>
+                <select name="table_id" id="table_id" class="input-field" required>
+                    <option value="">-- Select Table --</option>
+                    {% for table in tables %}
+                    <option value="{{ table.table_id }}">
+                        Table {{ table.table_number }} ({{ table.seating_capacity }} seats)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+            <div class="field-group">
+                <label for="reservation_date">Reservation Date *</label>
+                <input type="date" 
+                       name="reservation_date" 
+                       id="reservation_date" 
+                       class="input-field" 
+                       required
+                       min="{{ today }}">
+            </div>
+            
+            <div class="field-group">
+                <label for="reservation_time">Reservation Time *</label>
+                <input type="time" 
+                       name="reservation_time" 
+                       id="reservation_time" 
+                       class="input-field" 
+                       required>
+            </div>
+            
+            <div class="field-group">
+                <label for="party_size">Party Size *</label>
+                <input type="number" 
+                       name="party_size" 
+                       id="party_size" 
+                       class="input-field" 
+                       min="1"
+                       max="20"
+                       required
+                       placeholder="Number of guests">
+            </div>
+        </div>
+        
+        <div class="field-group">
+            <label for="special_requests">Special Requests</label>
+            <textarea name="special_requests" 
+                      id="special_requests" 
+                      class="input-field" 
+                      rows="3"
+                      placeholder="e.g., Window seat, high chair needed, birthday celebration"></textarea>
+        </div>
+        
+        <div style="margin-top: 1.5rem;">
+            <button type="submit" class="button button-primary">Create Reservation</button>
+            <a href="{{ url_for('reservations_list') }}" class="button">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

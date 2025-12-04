@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu - Restaurant</title>
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .menu-container {
@@ -114,12 +115,21 @@
     </style>
 </head>
 <body>
+    
     <div class="menu-container">
         <div class="menu-header">
             <h1>🍽️ Restaurant Menu</h1>
             <p>Order your favorite dishes</p>
+            
         </div>
-
+<!-- Add this near the top of the page, maybe in the header -->
+<div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+    <a href="{{ url_for('logout') }}" 
+       style="background-color: #e74c3c; color: white; padding: 10px 20px; 
+              border-radius: 5px; text-decoration: none; font-weight: bold;">
+        Logout
+    </a>
+</div>
         {% for category, items in menu.items() %}
         <div class="category-section">
             <h2 class="category-title">{{ category }}</h2>

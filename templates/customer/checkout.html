@@ -7,91 +7,98 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
+    <div class="page-wrapper">
         <div class="page-header">
             <h1>Checkout</h1>
+            <a href="{{ url_for('view_cart') }}" class="button">← Back to Cart</a>
         </div>
 
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
             <!-- Checkout Form -->
-            <div class="card">
-                <div class="card-header">Order Information</div>
+            <div class="content-box">
+                <div class="box-header">Order Information</div>
                 
-                <form method="POST" action="{{ url_for('checkout') }}">
-                    <div class="form-group">
-                        <label>Existing Customer?</label>
-                        <select name="customer_id" id="customer_select" class="form-control" onchange="toggleCustomerForm()">
-                            <option value="">New Customer</option>
-                            {% for customer in customers %}
-                            <option value="{{ customer.customer_id }}">
-                                {{ customer.first_name }} {{ customer.last_name }} ({{ customer.email }})
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div id="new_customer_form">
-                        <h3 style="margin-top: 1.5rem;">Customer Details</h3>
+                <div style="padding: 1.5rem;">
+                    <form method="POST" action="{{ url_for('checkout') }}" id="checkoutForm">
+                        <div class="field-group">
+                            <label>Existing Customer?</label>
+                            <select name="customer_id" id="customer_select" class="input-field" onchange="toggleCustomerForm()">
+                                <option value="">New Customer</option>
+                                {% for customer in customers %}
+                                <option value="{{ customer.customer_id }}">
+                                    {{ customer.first_name }} {{ customer.last_name }} ({{ customer.email }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div class="form-group">
-                                <label>First Name *</label>
-                                <input type="text" name="first_name" class="form-control" id="first_name">
+                        <div id="new_customer_form">
+                            <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Customer Details</h3>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="field-group">
+                                    <label>First Name *</label>
+                                    <input type="text" name="first_name" class="input-field" id="first_name">
+                                </div>
+                                
+                                <div class="field-group">
+                                    <label>Last Name *</label>
+                                    <input type="text" name="last_name" class="input-field" id="last_name">
+                                </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label>Last Name *</label>
-                                <input type="text" name="last_name" class="form-control" id="last_name">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="field-group">
+                                    <label>Email *</label>
+                                    <input type="email" name="email" class="input-field" id="email">
+                                </div>
+                                
+                                <div class="field-group">
+                                    <label>Phone *</label>
+                                    <input type="tel" name="phone_number" class="input-field" id="phone" placeholder="617-555-1234">
+                                </div>
                             </div>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div class="form-group">
-                                <label>Email *</label>
-                                <input type="email" name="email" class="form-control" id="email">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Phone *</label>
-                                <input type="tel" name="phone_number" class="form-control" id="phone">
-                            </div>
+                        <div class="field-group">
+                            <label>Order Type *</label>
+                            <select name="order_type" class="input-field" id="order_type" required onchange="toggleDeliveryAddress()">
+                                <option value="">-- Select --</option>
+                                <option value="Pickup">Pickup</option>
+                                <option value="Delivery">Delivery</option>
+                            </select>
                         </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Order Type *</label>
-                        <select name="order_type" class="form-control" id="order_type" required onchange="toggleDeliveryAddress()">
-                            <option value="">-- Select --</option>
-                            <option value="Pickup">Pickup</option>
-                            <option value="Delivery">Delivery</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group" id="delivery_address_field" style="display: none;">
-                        <label>Delivery Address *</label>
-                        <textarea name="delivery_address" class="form-control" rows="3" id="delivery_address"></textarea>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-success btn-block">Place Order</button>
-                </form>
+                        
+                        <div class="field-group" id="delivery_address_field" style="display: none;">
+                            <label>Delivery Address *</label>
+                            <textarea name="delivery_address" class="input-field" rows="3" id="delivery_address" placeholder="123 Main St, Boston, MA 02108"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="button button-success" style="width: 100%; padding: 0.75rem; margin-top: 1rem;">
+                            Place Order
+                        </button>
+                    </form>
+                </div>
             </div>
             
             <!-- Order Summary -->
-            <div class="card">
-                <div class="card-header">Order Summary</div>
+            <div class="content-box">
+                <div class="box-header">Order Summary</div>
                 
-                {% for item in cart %}
-                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #ecf0f1;">
-                    <div>
-                        <strong>{{ item.item_name }}</strong><br>
-                        <small>Qty: {{ item.quantity }}</small>
+                <div style="padding: 1rem;">
+                    {% for item in cart %}
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #ecf0f1;">
+                        <div>
+                            <strong>{{ item.item_name }}</strong><br>
+                            <small>Qty: {{ item.quantity }}</small>
+                        </div>
+                        <div>${{ "%.2f"|format(item.price * item.quantity) }}</div>
                     </div>
-                    <div>${{ "%.2f"|format(item.price * item.quantity) }}</div>
-                </div>
-                {% endfor %}
-                
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #2c3e50; font-size: 1.3rem; font-weight: bold;">
-                    Total: ${{ "%.2f"|format(total) }}
+                    {% endfor %}
+                    
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #2c3e50; font-size: 1.3rem; font-weight: bold;">
+                        Total: ${{ "%.2f"|format(total) }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -120,6 +127,13 @@
         field.style.display = orderType === 'Delivery' ? 'block' : 'none';
         address.required = orderType === 'Delivery';
     }
+    
+    // Debug: Log form submission
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+        console.log('Form submitting...');
+        console.log('Order type:', document.getElementById('order_type').value);
+        console.log('Customer ID:', document.getElementById('customer_select').value);
+    });
     </script>
 </body>
 </html>

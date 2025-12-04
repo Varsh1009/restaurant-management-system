@@ -5,14 +5,18 @@
 {% block content %}
 <div class="page-header">
     <h1>Inventory Management</h1>
+    <div style="display: flex; gap: 0.5rem;">
+        <a href="{{ url_for('new_inventory') }}" class="button button-primary">➕ New Item</a>
+        <a href="{{ url_for('export_inventory_csv') }}" class="button button-success">📥 Export</a>
+    </div>
 </div>
 
 <!-- Low Stock Alerts -->
 {% if low_stock %}
-<div class="card" style="border-left: 4px solid #e74c3c;">
-    <div class="card-header" style="color: #e74c3c;">⚠️ Low Stock Alerts</div>
+<div class="content-box" style="border-left: 4px solid #e74c3c;">
+    <div class="box-header" style="color: #e74c3c;">⚠️ Low Stock Alerts</div>
     
-    <table class="table">
+    <table class="data-table">
         <thead>
             <tr>
                 <th>Item</th>
@@ -30,12 +34,12 @@
                 <td>{{ item.quantity if item.quantity is not none else 0 }} {{ item.unit }}</td>
                 <td>{{ item.minimum_stock_level if item.minimum_stock_level is not none else 0 }} {{ item.unit }}</td>
                 <td>
-                    <span class="badge badge-danger">{{ "%.1f"|format(item.stock_percentage if item.stock_percentage is not none else 0) }}%</span>
+                    <span class="label label-danger">{{ "%.1f"|format(item.stock_percentage if item.stock_percentage is not none else 0) }}%</span>
                 </td>
                 <td>{{ item.supplier_name if item.supplier_name else 'N/A' }}</td>
                 <td>
                     <button onclick="showRestockModal({{ item.inventory_id }}, '{{ item.item_name }}')" 
-                            class="btn btn-sm btn-primary">Restock</button>
+                            class="button button-small button-primary">Restock</button>
                 </td>
             </tr>
             {% endfor %}
@@ -45,10 +49,10 @@
 {% endif %}
 
 <!-- All Inventory -->
-<div class="card">
-    <div class="card-header">All Inventory Items</div>
+<div class="content-box">
+    <div class="box-header">All Inventory Items</div>
     
-    <table class="table">
+    <table class="data-table">
         <thead>
             <tr>
                 <th>Item</th>
@@ -58,7 +62,7 @@
                 <th>Supplier</th>
                 <th>Unit Cost</th>
                 <th>Last Restocked</th>
-                <th>Action</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -72,8 +76,18 @@
                 <td>${{ "%.2f"|format(item.unit_cost if item.unit_cost is not none else 0) }}</td>
                 <td>{{ item.last_restocked_date if item.last_restocked_date else 'Never' }}</td>
                 <td>
+                    <a href="{{ url_for('edit_inventory', inventory_id=item.inventory_id) }}" 
+                       class="button button-small">Edit</a>
+                    
                     <button onclick="showRestockModal({{ item.inventory_id }}, '{{ item.item_name }}')" 
-                            class="btn btn-sm">Update</button>
+                            class="button button-small button-success">Restock</button>
+                    
+                    <form method="POST" 
+                          action="{{ url_for('delete_inventory', inventory_id=item.inventory_id) }}" 
+                          style="display: inline;"
+                          onsubmit="return confirm('Delete {{ item.item_name }}? This cannot be undone!')">
+                        <button type="submit" class="button button-small button-danger">Delete</button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}
@@ -86,12 +100,12 @@
     <div style="background: white; max-width: 500px; margin: 100px auto; padding: 2rem; border-radius: 8px;">
         <h3 id="modalTitle">Restock Item</h3>
         <form method="POST" id="restockForm">
-            <div class="form-group">
+            <div class="field-group">
                 <label>Quantity Received</label>
-                <input type="number" name="quantity" class="form-control" step="0.01" min="0.01" required>
+                <input type="number" name="quantity" class="input-field" step="0.01" min="0.01" required>
             </div>
-            <button type="submit" class="btn btn-primary">Update Stock</button>
-            <button type="button" onclick="closeRestockModal()" class="btn">Cancel</button>
+            <button type="submit" class="button button-primary">Update Stock</button>
+            <button type="button" onclick="closeRestockModal()" class="button">Cancel</button>
         </form>
     </div>
 </div>

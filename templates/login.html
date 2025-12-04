@@ -1,42 +1,132 @@
-{% extends "base.html" %}
-
-{% block title %}Login - Restaurant Management{% endblock %}
-
-{% block content %}
-<div class="login-container">
-    <div class="login-box">
-        <h1>🍽️ Restaurant Management System</h1>
-        <h3>Staff Login</h3>
-        
-        <form method="POST" action="{{ url_for('login') }}">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" 
-                       id="username" 
-                       name="username" 
-                       class="form-control" 
-                       required 
-                       autofocus>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Restaurant Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-box">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 3rem;">🍽️</div>
+                <h1>Welcome</h1>
+                <p style="color: #7f8c8d;">Restaurant Management System</p>
             </div>
             
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" 
-                       id="password" 
-                       name="password" 
-                       class="form-control" 
-                       required>
+            <!-- Login Type Selector -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <button type="button" 
+                        id="staffLoginBtn" 
+                        class="button button-primary" 
+                        style="flex: 1; padding: 0.75rem;"
+                        onclick="showStaffLogin()">
+                    Staff Login
+                </button>
+                <button type="button" 
+                        id="customerLoginBtn" 
+                        class="button" 
+                        style="flex: 1; padding: 0.75rem;"
+                        onclick="showCustomerLogin()">
+                    Customer Login
+                </button>
             </div>
             
-            <button type="submit" class="btn btn-primary btn-block">Login</button>
-        </form>
-        
-        <div class="login-info">
-            <h4>Demo Credentials:</h4>
-            <p><strong>Manager:</strong> sarah.manager / password123</p>
-            <p><strong>Staff:</strong> tom.server / password123</p>
-            <p><strong>Coordinator:</strong> alex.coordinator / password123</p>
+            <!-- STAFF LOGIN FORM -->
+            <div id="staffLoginForm">
+                <form method="POST" action="{{ url_for('login') }}">
+                    <input type="hidden" name="login_type" value="staff">
+                    
+                    <div class="field-group">
+                        <label for="username">Username</label>
+                        <input type="text" 
+                               id="username" 
+                               name="username" 
+                               class="input-field" 
+                               placeholder="sarah.manager">
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="password">Password</label>
+                        <input type="password" 
+                               id="password" 
+                               name="password" 
+                               class="input-field"
+                               placeholder="password123">
+                    </div>
+                    
+                    <button type="submit" class="button button-primary" style="width: 100%; padding: 0.75rem;">
+                        Login as Staff
+                    </button>
+                </form>
+                
+                <div class="login-info">
+                    <h4>Demo Staff Credentials:</h4>
+                    <p><strong>Manager:</strong> sarah.manager / password123</p>
+                    <p><strong>Waiter:</strong> tom.server / password123</p>
+                    <p><strong>Coordinator:</strong> alex.coordinator / password123</p>
+                </div>
+            </div>
+            
+            <!-- CUSTOMER LOGIN FORM -->
+            <div id="customerLoginForm" style="display: none;">
+                <form method="POST" action="{{ url_for('login') }}">
+                    <input type="hidden" name="login_type" value="customer">
+                    
+                    <div class="field-group">
+                        <label for="customer_email">Email</label>
+                        <input type="email" 
+                               id="customer_email" 
+                               name="email" 
+                               class="input-field" 
+                               placeholder="your@email.com">
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="customer_phone">Phone Number</label>
+                        <input type="tel" 
+                               id="customer_phone" 
+                               name="phone_number" 
+                               class="input-field"
+                               placeholder="617-555-1234">
+                    </div>
+                    
+                    <button type="submit" class="button button-primary" style="width: 100%; padding: 0.75rem;">
+                        Login as Customer
+                    </button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <p style="color: #7f8c8d;">Don't have an account?</p>
+                    <a href="{{ url_for('customer_signup') }}" class="button button-success" style="width: 100%; margin-top: 0.5rem;">
+                        Sign Up
+                    </a>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 1rem;">
+                <a href="{{ url_for('customer_home') }}" style="color: #7f8c8d; text-decoration: none;">
+                    ← Browse Menu (No Login)
+                </a>
+            </div>
         </div>
     </div>
-</div>
-{% endblock %}
+    
+    <script>
+    function showStaffLogin() {
+        document.getElementById('staffLoginForm').style.display = 'block';
+        document.getElementById('customerLoginForm').style.display = 'none';
+        document.getElementById('staffLoginBtn').classList.add('button-primary');
+        document.getElementById('customerLoginBtn').classList.remove('button-primary');
+    }
+    
+    function showCustomerLogin() {
+        document.getElementById('staffLoginForm').style.display = 'none';
+        document.getElementById('customerLoginForm').style.display = 'block';
+        document.getElementById('staffLoginBtn').classList.remove('button-primary');
+        document.getElementById('customerLoginBtn').classList.add('button-primary');
+    }
+    </script>
+</body>
+</html>

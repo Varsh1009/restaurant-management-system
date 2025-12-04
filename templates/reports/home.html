@@ -9,16 +9,24 @@
 {% block content %}
 <div class="page-header">
     <h1>📊 Reports & Analytics</h1>
+    <div style="display: flex; gap: 0.5rem;">
+        <a href="{{ url_for('export_revenue_csv') }}" class="button button-success">📥 Export Revenue</a>
+        <a href="{{ url_for('export_items_csv') }}" class="button button-success">📥 Export Items</a>
+        <a href="{{ url_for('export_customers_csv') }}" class="button button-success">📥 Export Customers</a>
+    </div>
 </div>
 
 <!-- Revenue by Channel -->
-<div class="card">
-    <div class="card-header">Revenue by Order Type</div>
+<div class="content-box">
+    <div class="box-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Revenue by Order Type</span>
+        <a href="{{ url_for('export_revenue_csv') }}" class="button button-small button-success">📥 CSV</a>
+    </div>
     
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 1.5rem;">
         <!-- Table -->
         <div>
-            <table class="table">
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Order Type</th>
@@ -54,13 +62,16 @@
 
 <!-- Top Selling Items -->
 {% if top_items %}
-<div class="card">
-    <div class="card-header">Top 10 Selling Items</div>
+<div class="content-box">
+    <div class="box-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Top 10 Selling Items</span>
+        <a href="{{ url_for('export_items_csv') }}" class="button button-small button-success">📥 CSV</a>
+    </div>
     
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 1.5rem;">
         <!-- Table -->
         <div>
-            <table class="table">
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Rank</th>
@@ -92,13 +103,13 @@
 
 <!-- Daily Revenue Trend -->
 {% if daily_trend and daily_trend|length > 0 %}
-<div class="card">
-    <div class="card-header">Daily Revenue Trend by Order Type</div>
-    <div id="trendChart" style="width: 100%; height: 450px;"></div>
+<div class="content-box">
+    <div class="box-header">Daily Revenue Trend by Order Type</div>
+    <div id="trendChart" style="width: 100%; height: 450px; padding: 1rem;"></div>
 </div>
 {% else %}
-<div class="card">
-    <div class="card-header">Daily Revenue Trend</div>
+<div class="content-box">
+    <div class="box-header">Daily Revenue Trend</div>
     <p style="padding: 2rem; text-align: center; color: #999;">
         📈 No trend data available yet. Complete orders to see the trend chart.
     </p>
@@ -106,10 +117,13 @@
 {% endif %}
 
 <!-- Top Customers -->
-<div class="card">
-    <div class="card-header">Top 10 Customers by Loyalty Points</div>
+<div class="content-box">
+    <div class="box-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Top 10 Customers by Loyalty Points</span>
+        <a href="{{ url_for('export_customers_csv') }}" class="button button-small button-success">📥 CSV</a>
+    </div>
     
-    <table class="table">
+    <table class="data-table">
         <thead>
             <tr>
                 <th>Rank</th>
@@ -124,7 +138,7 @@
                 <td>{{ loop.index }}</td>
                 <td>{{ customer.first_name }} {{ customer.last_name }}</td>
                 <td>
-                    <span class="badge badge-success">{{ customer.loyalty_points }} pts</span>
+                    <span class="label label-success">{{ customer.loyalty_points }} pts</span>
                 </td>
                 <td>{{ customer.total_orders }}</td>
             </tr>

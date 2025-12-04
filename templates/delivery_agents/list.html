@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Delivery Agents - Restaurant Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Delivery Agents</h1>
+</div>
+
+<div class="content-box">
+    <div class="box-header">All Delivery Agents</div>
+    
+    {% if not agents %}
+    <div class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🚴</div>
+        <h3>No delivery agents found</h3>
+        <p style="color: #7f8c8d;">Delivery agent information will appear here.</p>
+    </div>
+    {% else %}
+    
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Agent ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Vehicle</th>
+                <th>Location</th>
+                <th>Total Deliveries</th>
+                <th>Rating</th>
+                <th>Current Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agent in agents %}
+            <tr>
+                <td>{{ agent.agent_id }}</td>
+                <td>{{ agent.agent_name }}</td>
+                <td>{{ agent.phone_number }}</td>
+                <td>
+                    {% if agent.vehicle_number %}
+                        {{ agent.vehicle_number }} ({{ agent.vehicle_type }})
+                    {% else %}
+                        <span style="color: #999;">No vehicle assigned</span>
+                    {% endif %}
+                </td>
+                <td>{{ agent.location_name }}</td>
+                <td>{{ agent.total_deliveries }}</td>
+                <td>
+                    <span class="label label-success">
+                        ⭐ {{ "%.1f"|format(agent.rating) }}
+                    </span>
+                </td>
+                <td>
+                    <span class="label label-{{ 'success' if agent.current_status == 'Available' else ('warning' if agent.current_status == 'On Delivery' else 'danger') }}">
+                        {{ agent.current_status }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% endif %}
+</div>
+{% endblock %}

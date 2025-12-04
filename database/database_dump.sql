@@ -293,6 +293,10 @@ ADD FOREIGN KEY (manager_id) REFERENCES Staff(staff_id)
 -- SAMPLE DATA INSERTION
 -- ============================================
 
+-- ============================================
+-- SAMPLE DATA INSERTION - UPDATED TO 2025
+-- ============================================
+
 -- Insert Restaurant Locations
 INSERT INTO Restaurant_Locations (location_name, address, city, state, zip_code, phone_number, opening_time, closing_time) VALUES
 ('Downtown Bistro', '123 Main St', 'Boston', 'MA', '02108', '617-555-0001', '10:00:00', '22:00:00'),
@@ -352,7 +356,12 @@ INSERT INTO Menu_Items (item_name, description, category, price, preparation_tim
 INSERT INTO User_Credentials (staff_id, username, password_hash) VALUES
 (1, 'sarah.manager', 'password123'),
 (2, 'tom.server', 'password123'),
-(11, 'alex.coordinator', 'password123');
+(11, 'alex.coordinator', 'password123'),
+(5, 'emily.manager', 'password123'),
+(9, 'michael.manager', 'password123'),
+(3, 'lisa.chef', 'password123'),
+(6, 'james.waiter', 'password123'),
+(7, 'anna.chef', 'password123');
 
 -- Insert Tables
 INSERT INTO Tables (location_id, table_number, seating_capacity, status) VALUES
@@ -381,35 +390,35 @@ INSERT INTO Delivery_Agents (staff_id, vehicle_id, current_status, total_deliver
 (4, 1, 'Available', 45, 4.8),
 (8, 3, 'Available', 32, 4.6);
 
--- Insert Inventory
+-- Insert Inventory (Updated to 2025)
 INSERT INTO Inventory (location_id, item_name, category, quantity, unit, minimum_stock_level, supplier_name, unit_cost, last_restocked_date) VALUES
-(1, 'Salmon Fillet', 'Seafood', 50, 'lbs', 20, 'Fresh Seafood Co', 12.50, '2024-11-10'),
-(1, 'Romaine Lettuce', 'Vegetables', 30, 'heads', 10, 'Green Farms', 1.50, '2024-11-12'),
-(1, 'Pizza Dough', 'Bakery', 40, 'balls', 15, 'Italian Supplies', 2.00, '2024-11-11'),
-(1, 'Chocolate', 'Bakery', 8, 'lbs', 10, 'Sweet Suppliers', 8.00, '2024-11-09'),
-(1, 'Potatoes', 'Vegetables', 100, 'lbs', 30, 'Farm Fresh', 0.75, '2024-11-10'),
-(1, 'Chicken Breast', 'Meat', 60, 'lbs', 25, 'Quality Meats', 5.50, '2024-11-11'),
-(2, 'Salmon Fillet', 'Seafood', 45, 'lbs', 20, 'Fresh Seafood Co', 12.50, '2024-11-11'),
-(2, 'Mozzarella Cheese', 'Dairy', 35, 'lbs', 15, 'Dairy Best', 6.00, '2024-11-10'),
-(2, 'Tomatoes', 'Vegetables', 50, 'lbs', 20, 'Green Farms', 2.00, '2024-11-12'),
-(3, 'Pasta', 'Dry Goods', 80, 'lbs', 30, 'Italian Supplies', 1.75, '2024-11-09');
+(1, 'Salmon Fillet', 'Seafood', 50, 'lbs', 20, 'Fresh Seafood Co', 12.50, '2025-11-10'),
+(1, 'Romaine Lettuce', 'Vegetables', 30, 'heads', 10, 'Green Farms', 1.50, '2025-11-12'),
+(1, 'Pizza Dough', 'Bakery', 40, 'balls', 15, 'Italian Supplies', 2.00, '2025-11-11'),
+(1, 'Chocolate', 'Bakery', 8, 'lbs', 10, 'Sweet Suppliers', 8.00, '2025-11-09'),
+(1, 'Potatoes', 'Vegetables', 100, 'lbs', 30, 'Farm Fresh', 0.75, '2025-11-10'),
+(1, 'Chicken Breast', 'Meat', 60, 'lbs', 25, 'Quality Meats', 5.50, '2025-11-11'),
+(2, 'Salmon Fillet', 'Seafood', 45, 'lbs', 20, 'Fresh Seafood Co', 12.50, '2025-11-11'),
+(2, 'Mozzarella Cheese', 'Dairy', 35, 'lbs', 15, 'Dairy Best', 6.00, '2025-11-10'),
+(2, 'Tomatoes', 'Vegetables', 50, 'lbs', 20, 'Green Farms', 2.00, '2025-11-12'),
+(3, 'Pasta', 'Dry Goods', 80, 'lbs', 30, 'Italian Supplies', 1.75, '2025-11-09');
 
--- Insert Orders
+-- Insert Orders (Updated to 2025)
 INSERT INTO Orders (customer_id, location_id, table_id, order_type, order_date, total_amount, status, staff_id, delivery_agent_id, delivery_address) VALUES
-(1, 1, 1, 'Dine-In', '2024-11-01 12:30:00', 45.96, 'Completed', 2, NULL, NULL),
-(2, 1, NULL, 'Delivery', '2024-11-01 18:45:00', 52.47, 'Delivered', 2, 1, '321 Oak St, Cambridge, MA 02139'),
-(3, 2, 6, 'Dine-In', '2024-11-02 19:15:00', 67.95, 'Completed', 6, NULL, NULL),
-(4, 1, NULL, 'Pickup', '2024-11-03 13:20:00', 33.97, 'Completed', 2, NULL, NULL),
-(5, 2, NULL, 'Delivery', '2024-11-04 20:00:00', 71.96, 'Delivered', 6, 2, '147 Cedar Ave, Brookline, MA 02446'),
-(6, 3, 10, 'Dine-In', '2024-11-05 14:30:00', 89.94, 'Completed', 10, NULL, NULL),
-(7, 1, 2, 'Dine-In', '2024-11-06 17:45:00', 56.96, 'Completed', 2, NULL, NULL),
-(8, 2, NULL, 'Pickup', '2024-11-07 12:15:00', 41.96, 'Completed', 6, NULL, NULL),
-(1, 1, NULL, 'Delivery', '2024-11-08 19:30:00', 48.96, 'Delivered', 2, 1, '789 Park Ave, Boston, MA 02115'),
-(2, 3, 11, 'Dine-In', '2024-11-09 13:00:00', 75.94, 'Completed', 10, NULL, NULL),
-(3, 1, 3, 'Dine-In', '2024-11-10 18:20:00', 64.95, 'Completed', 2, NULL, NULL),
-(4, 2, NULL, 'Delivery', '2024-11-11 20:15:00', 59.96, 'Delivered', 6, 2, '987 Pine St, Boston, MA 02116'),
-(5, 1, NULL, 'Pickup', '2024-11-12 14:45:00', 37.97, 'Completed', 2, NULL, NULL),
-(6, 3, NULL, 'Delivery', '2024-11-13 19:00:00', 82.95, 'In Transit', 10, 2, '258 Birch Rd, Cambridge, MA 02140');
+(1, 1, 1, 'Dine-In', '2025-11-01 12:30:00', 45.96, 'Completed', 2, NULL, NULL),
+(2, 1, NULL, 'Delivery', '2025-11-01 18:45:00', 52.47, 'Delivered', 2, 1, '321 Oak St, Cambridge, MA 02139'),
+(3, 2, 6, 'Dine-In', '2025-11-02 19:15:00', 67.95, 'Completed', 6, NULL, NULL),
+(4, 1, NULL, 'Pickup', '2025-11-03 13:20:00', 33.97, 'Completed', 2, NULL, NULL),
+(5, 2, NULL, 'Delivery', '2025-11-04 20:00:00', 71.96, 'Delivered', 6, 2, '147 Cedar Ave, Brookline, MA 02446'),
+(6, 3, 10, 'Dine-In', '2025-11-05 14:30:00', 89.94, 'Completed', 10, NULL, NULL),
+(7, 1, 2, 'Dine-In', '2025-11-06 17:45:00', 56.96, 'Completed', 2, NULL, NULL),
+(8, 2, NULL, 'Pickup', '2025-11-07 12:15:00', 41.96, 'Completed', 6, NULL, NULL),
+(1, 1, NULL, 'Delivery', '2025-11-08 19:30:00', 48.96, 'Delivered', 2, 1, '789 Park Ave, Boston, MA 02115'),
+(2, 3, 11, 'Dine-In', '2025-11-09 13:00:00', 75.94, 'Completed', 10, NULL, NULL),
+(3, 1, 3, 'Dine-In', '2025-11-10 18:20:00', 64.95, 'Completed', 2, NULL, NULL),
+(4, 2, NULL, 'Delivery', '2025-11-11 20:15:00', 59.96, 'Delivered', 6, 2, '987 Pine St, Boston, MA 02116'),
+(5, 1, NULL, 'Pickup', '2025-11-12 14:45:00', 37.97, 'Completed', 2, NULL, NULL),
+(6, 3, NULL, 'Delivery', '2025-11-13 19:00:00', 82.95, 'In Transit', 10, 2, '258 Birch Rd, Cambridge, MA 02140');
 
 -- Insert Order Items
 INSERT INTO Order_Items (order_id, item_id, quantity, unit_price, subtotal, special_requests) VALUES
@@ -453,45 +462,65 @@ INSERT INTO Order_Items (order_id, item_id, quantity, unit_price, subtotal, spec
 (14, 1, 1, 8.99, 8.99, NULL),
 (14, 10, 1, 8.99, 8.99, NULL);
 
--- Insert Payments
+-- Insert Payments (Updated to 2025)
 INSERT INTO Payments (order_id, payment_method, amount, payment_status, transaction_id, payment_date, tip_amount) VALUES
-(1, 'Credit Card', 45.96, 'Completed', 'TXN001', '2024-11-01 13:00:00', 8.00),
-(2, 'Digital Wallet', 52.47, 'Completed', 'TXN002', '2024-11-01 19:15:00', 10.00),
-(3, 'Cash', 67.95, 'Completed', NULL, '2024-11-02 20:00:00', 12.00),
-(4, 'Debit Card', 33.97, 'Completed', 'TXN004', '2024-11-03 13:45:00', 5.00),
-(5, 'Credit Card', 71.96, 'Completed', 'TXN005', '2024-11-04 20:30:00', 14.00),
-(6, 'Cash', 89.94, 'Completed', NULL, '2024-11-05 15:15:00', 15.00),
-(7, 'Credit Card', 56.96, 'Completed', 'TXN007', '2024-11-06 18:30:00', 10.00),
-(8, 'Digital Wallet', 41.96, 'Completed', 'TXN008', '2024-11-07 12:45:00', 7.00),
-(9, 'Credit Card', 48.96, 'Completed', 'TXN009', '2024-11-08 20:00:00', 9.00),
-(10, 'Debit Card', 75.94, 'Completed', 'TXN010', '2024-11-09 13:45:00', 13.00),
-(11, 'Cash', 64.95, 'Completed', NULL, '2024-11-10 19:00:00', 11.00),
-(12, 'Credit Card', 59.96, 'Completed', 'TXN012', '2024-11-11 20:45:00', 11.00),
-(13, 'Digital Wallet', 37.97, 'Completed', 'TXN013', '2024-11-12 15:15:00', 6.00),
-(14, 'Credit Card', 82.95, 'Pending', NULL, '2024-11-13 19:30:00', 0.00);
+(1, 'Credit Card', 45.96, 'Completed', 'TXN001', '2025-11-01 13:00:00', 8.00),
+(2, 'Digital Wallet', 52.47, 'Completed', 'TXN002', '2025-11-01 19:15:00', 10.00),
+(3, 'Cash', 67.95, 'Completed', NULL, '2025-11-02 20:00:00', 12.00),
+(4, 'Debit Card', 33.97, 'Completed', 'TXN004', '2025-11-03 13:45:00', 5.00),
+(5, 'Credit Card', 71.96, 'Completed', 'TXN005', '2025-11-04 20:30:00', 14.00),
+(6, 'Cash', 89.94, 'Completed', NULL, '2025-11-05 15:15:00', 15.00),
+(7, 'Credit Card', 56.96, 'Completed', 'TXN007', '2025-11-06 18:30:00', 10.00),
+(8, 'Digital Wallet', 41.96, 'Completed', 'TXN008', '2025-11-07 12:45:00', 7.00),
+(9, 'Credit Card', 48.96, 'Completed', 'TXN009', '2025-11-08 20:00:00', 9.00),
+(10, 'Debit Card', 75.94, 'Completed', 'TXN010', '2025-11-09 13:45:00', 13.00),
+(11, 'Cash', 64.95, 'Completed', NULL, '2025-11-10 19:00:00', 11.00),
+(12, 'Credit Card', 59.96, 'Completed', 'TXN012', '2025-11-11 20:45:00', 11.00),
+(13, 'Digital Wallet', 37.97, 'Completed', 'TXN013', '2025-11-12 15:15:00', 6.00),
+(14, 'Credit Card', 82.95, 'Pending', NULL, '2025-11-13 19:30:00', 0.00);
 
--- Insert Reservations
+-- Insert Reservations (Updated to December 2025 - Future dates)
 INSERT INTO Reservations (customer_id, table_id, reservation_date, reservation_time, party_size, status, special_requests) VALUES
-(1, 1, '2024-11-25', '18:00:00', 2, 'Confirmed', 'Window seat preferred'),
-(2, 3, '2024-11-25', '19:00:00', 4, 'Confirmed', 'Birthday celebration'),
-(3, 6, '2024-11-26', '18:30:00', 4, 'Confirmed', NULL),
-(4, 8, '2024-11-26', '19:30:00', 6, 'Confirmed', 'Anniversary dinner'),
-(5, 10, '2024-11-27', '18:00:00', 4, 'Confirmed', NULL);
+(1, 1, '2025-12-10', '18:00:00', 2, 'Confirmed', 'Window seat preferred'),
+(2, 3, '2025-12-10', '19:00:00', 4, 'Confirmed', 'Birthday celebration'),
+(3, 6, '2025-12-15', '18:30:00', 4, 'Confirmed', NULL),
+(4, 8, '2025-12-15', '19:30:00', 6, 'Confirmed', 'Anniversary dinner'),
+(5, 10, '2025-12-20', '18:00:00', 4, 'Confirmed', NULL);
 
--- Insert Shifts
+-- Insert Shifts (Updated to December 2025 - Mix of completed and upcoming)
 INSERT INTO Shifts (staff_id, location_id, shift_date, start_time, end_time, break_duration, status) VALUES
-(1, 1, '2024-11-13', '09:00:00', '17:00:00', 30, 'Completed'),
-(2, 1, '2024-11-13', '10:00:00', '18:00:00', 30, 'Completed'),
-(3, 1, '2024-11-13', '11:00:00', '20:00:00', 30, 'Completed'),
-(4, 1, '2024-11-13', '16:00:00', '22:00:00', 0, 'Completed'),
-(5, 2, '2024-11-13', '09:00:00', '17:00:00', 30, 'Completed'),
-(6, 2, '2024-11-13', '11:00:00', '19:00:00', 30, 'Completed'),
-(7, 2, '2024-11-13', '12:00:00', '21:00:00', 30, 'Completed'),
-(9, 3, '2024-11-13', '09:00:00', '17:00:00', 30, 'Completed'),
-(10, 3, '2024-11-13', '10:00:00', '18:00:00', 30, 'Completed'),
-(1, 1, '2024-11-24', '09:00:00', '17:00:00', 30, 'Scheduled'),
-(2, 1, '2024-11-24', '10:00:00', '18:00:00', 30, 'Scheduled'),
-(3, 1, '2024-11-24', '11:00:00', '20:00:00', 30, 'Scheduled');
+-- Past completed shifts (Nov/early Dec)
+(1, 1, '2025-11-28', '09:00:00', '17:00:00', 30, 'Completed'),
+(2, 1, '2025-11-28', '10:00:00', '18:00:00', 30, 'Completed'),
+(3, 1, '2025-11-28', '11:00:00', '20:00:00', 30, 'Completed'),
+(4, 1, '2025-11-28', '16:00:00', '22:00:00', 0, 'Completed'),
+(5, 2, '2025-11-28', '09:00:00', '17:00:00', 30, 'Completed'),
+(6, 2, '2025-11-28', '11:00:00', '19:00:00', 30, 'Completed'),
+(7, 2, '2025-11-28', '12:00:00', '21:00:00', 30, 'Completed'),
+(9, 3, '2025-11-28', '09:00:00', '17:00:00', 30, 'Completed'),
+(10, 3, '2025-11-28', '10:00:00', '18:00:00', 30, 'Completed'),
+
+-- Upcoming scheduled shifts (Dec 2025 - current week and future)
+(1, 1, '2025-12-03', '09:00:00', '17:00:00', 30, 'Scheduled'),
+(2, 1, '2025-12-03', '10:00:00', '18:00:00', 30, 'Scheduled'),
+(3, 1, '2025-12-03', '11:00:00', '20:00:00', 30, 'Scheduled'),
+(4, 1, '2025-12-03', '16:00:00', '22:00:00', 0, 'Scheduled'),
+
+(1, 1, '2025-12-04', '09:00:00', '17:00:00', 30, 'Scheduled'),
+(2, 1, '2025-12-04', '10:00:00', '18:00:00', 30, 'Scheduled'),
+(3, 1, '2025-12-04', '11:00:00', '20:00:00', 30, 'Scheduled'),
+
+(5, 2, '2025-12-04', '09:00:00', '17:00:00', 30, 'Scheduled'),
+(6, 2, '2025-12-04', '11:00:00', '19:00:00', 30, 'Scheduled'),
+(7, 2, '2025-12-04', '12:00:00', '21:00:00', 30, 'Scheduled'),
+
+(9, 3, '2025-12-05', '09:00:00', '17:00:00', 30, 'Scheduled'),
+(10, 3, '2025-12-05', '10:00:00', '18:00:00', 30, 'Scheduled'),
+
+(1, 1, '2025-12-06', '09:00:00', '17:00:00', 30, 'Scheduled'),
+(2, 1, '2025-12-06', '10:00:00', '18:00:00', 30, 'Scheduled'),
+(5, 2, '2025-12-06', '09:00:00', '17:00:00', 30, 'Scheduled'),
+(9, 3, '2025-12-06', '09:00:00', '17:00:00', 30, 'Scheduled');
 
 -- ============================================
 -- STORED PROCEDURES
@@ -1088,8 +1117,308 @@ BEGIN
     LIMIT 10;
 END //
 
-DELIMITER ;
+-- ==================== NEW PROCEDURES FOR CUSTOMER PORTAL ====================
 
+-- 32. Get order total (for add_items page)
+CREATE PROCEDURE sp_GetOrderTotal(IN p_order_id INT)
+BEGIN
+    SELECT total_amount FROM Orders WHERE order_id = p_order_id;
+END //
+
+-- 33. Create customer order (for checkout - customer portal)
+CREATE PROCEDURE sp_CreateCustomerOrder(
+    IN p_customer_id INT,
+    IN p_order_type ENUM('Pickup', 'Delivery'),
+    IN p_delivery_address VARCHAR(255),
+    OUT p_order_id INT
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error creating customer order';
+    END;
+    
+    START TRANSACTION;
+    
+    INSERT INTO Orders (customer_id, location_id, order_type, total_amount, delivery_address)
+    VALUES (p_customer_id, 1, p_order_type, 0.00, p_delivery_address);
+    
+    SET p_order_id = LAST_INSERT_ID();
+    
+    COMMIT;
+END //
+
+-- 34. Add customer order item (for checkout)
+CREATE PROCEDURE sp_AddCustomerOrderItem(
+    IN p_order_id INT,
+    IN p_item_id INT,
+    IN p_quantity INT,
+    IN p_unit_price DECIMAL(10,2)
+)
+BEGIN
+    DECLARE v_subtotal DECIMAL(10,2);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error adding customer order item';
+    END;
+    
+    START TRANSACTION;
+    
+    SET v_subtotal = p_unit_price * p_quantity;
+    
+    INSERT INTO Order_Items (order_id, item_id, quantity, unit_price, subtotal)
+    VALUES (p_order_id, p_item_id, p_quantity, p_unit_price, v_subtotal);
+    
+    UPDATE Orders 
+    SET total_amount = (SELECT SUM(subtotal) FROM Order_Items WHERE order_id = p_order_id)
+    WHERE order_id = p_order_id;
+    
+    COMMIT;
+END //
+
+-- ==================== AUTHENTICATION PROCEDURES ====================
+
+-- 35. Authenticate user login
+CREATE PROCEDURE sp_AuthenticateUser(
+    IN p_username VARCHAR(50),
+    IN p_password VARCHAR(255)
+)
+BEGIN
+    DECLARE v_credential_id INT;
+    
+    -- Get user info
+    SELECT uc.credential_id, uc.staff_id, uc.username, 
+           s.first_name, s.last_name, s.role, s.location_id,
+           rl.location_name
+    FROM User_Credentials uc
+    JOIN Staff s ON uc.staff_id = s.staff_id
+    JOIN Restaurant_Locations rl ON s.location_id = rl.location_id
+    WHERE uc.username = p_username 
+    AND uc.password_hash = p_password 
+    AND s.status = 'Active';
+    
+    -- Update last login time
+    SELECT credential_id INTO v_credential_id
+    FROM User_Credentials
+    WHERE username = p_username;
+    
+    IF v_credential_id IS NOT NULL THEN
+        UPDATE User_Credentials 
+        SET last_login = NOW() 
+        WHERE credential_id = v_credential_id;
+    END IF;
+END //
+-- ==================== INVENTORY FULL CRUD PROCEDURES ====================
+
+-- 36. Add inventory item
+CREATE PROCEDURE sp_AddInventoryItem(
+    IN p_location_id INT,
+    IN p_item_name VARCHAR(100),
+    IN p_category VARCHAR(50),
+    IN p_quantity DECIMAL(10,2),
+    IN p_unit VARCHAR(20),
+    IN p_minimum_stock_level DECIMAL(10,2),
+    IN p_supplier_name VARCHAR(100),
+    IN p_unit_cost DECIMAL(10,2)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error adding inventory item';
+    END;
+    
+    START TRANSACTION;
+    
+    INSERT INTO Inventory (location_id, item_name, category, quantity, unit, 
+                          minimum_stock_level, supplier_name, unit_cost, last_restocked_date)
+    VALUES (p_location_id, p_item_name, p_category, p_quantity, p_unit,
+            p_minimum_stock_level, p_supplier_name, p_unit_cost, CURDATE());
+    
+    COMMIT;
+    
+    SELECT LAST_INSERT_ID() as inventory_id;
+END //
+
+-- 37. Get inventory item by ID
+CREATE PROCEDURE sp_GetInventoryItemById(IN p_inventory_id INT)
+BEGIN
+    SELECT * FROM Inventory WHERE inventory_id = p_inventory_id;
+END //
+
+-- 38. Update inventory item (full edit)
+CREATE PROCEDURE sp_UpdateInventoryItem(
+    IN p_inventory_id INT,
+    IN p_item_name VARCHAR(100),
+    IN p_category VARCHAR(50),
+    IN p_quantity DECIMAL(10,2),
+    IN p_unit VARCHAR(20),
+    IN p_minimum_stock_level DECIMAL(10,2),
+    IN p_supplier_name VARCHAR(100),
+    IN p_unit_cost DECIMAL(10,2)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error updating inventory item';
+    END;
+    
+    START TRANSACTION;
+    
+    UPDATE Inventory 
+    SET item_name = p_item_name,
+        category = p_category,
+        quantity = p_quantity,
+        unit = p_unit,
+        minimum_stock_level = p_minimum_stock_level,
+        supplier_name = p_supplier_name,
+        unit_cost = p_unit_cost
+    WHERE inventory_id = p_inventory_id;
+    
+    COMMIT;
+END //
+
+-- 39. Delete inventory item
+CREATE PROCEDURE sp_DeleteInventoryItem(IN p_inventory_id INT)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error deleting inventory item';
+    END;
+    
+    START TRANSACTION;
+    DELETE FROM Inventory WHERE inventory_id = p_inventory_id;
+    COMMIT;
+END //
+
+-- ==================== STAFF VIEW PROCEDURES ====================
+
+-- 40. Get all staff
+CREATE PROCEDURE sp_GetAllStaff()
+BEGIN
+    SELECT s.staff_id, s.first_name, s.last_name, s.email, s.phone_number,
+           s.role, s.hourly_wage, s.hire_date, s.status,
+           rl.location_name
+    FROM Staff s
+    JOIN Restaurant_Locations rl ON s.location_id = rl.location_id
+    ORDER BY s.location_id, s.role, s.last_name;
+END //
+
+-- 41. Get staff by location
+CREATE PROCEDURE sp_GetStaffByLocation(IN p_location_id INT)
+BEGIN
+    SELECT staff_id, first_name, last_name, email, phone_number,
+           role, hourly_wage, hire_date, status
+    FROM Staff
+    WHERE location_id = p_location_id
+    ORDER BY role, last_name;
+END //
+
+-- ==================== SHIFTS VIEW PROCEDURES ====================
+
+-- 42. Get all shifts
+CREATE PROCEDURE sp_GetAllShifts(IN p_location_id INT)
+BEGIN
+    SELECT sh.shift_id, sh.shift_date, sh.start_time, sh.end_time, 
+           sh.break_duration, sh.status,
+           CONCAT(s.first_name, ' ', s.last_name) as staff_name,
+           s.role
+    FROM Shifts sh
+    JOIN Staff s ON sh.staff_id = s.staff_id
+    WHERE sh.location_id = p_location_id
+    ORDER BY sh.shift_date DESC, sh.start_time;
+END //
+
+-- 43. Get upcoming shifts
+CREATE PROCEDURE sp_GetUpcomingShifts(IN p_location_id INT)
+BEGIN
+    SELECT sh.shift_id, sh.shift_date, sh.start_time, sh.end_time, 
+           sh.break_duration, sh.status,
+           CONCAT(s.first_name, ' ', s.last_name) as staff_name,
+           s.role
+    FROM Shifts sh
+    JOIN Staff s ON sh.staff_id = s.staff_id
+    WHERE sh.location_id = p_location_id
+    AND sh.shift_date >= CURDATE()
+    ORDER BY sh.shift_date, sh.start_time;
+END //
+
+-- ==================== VEHICLES VIEW PROCEDURES ====================
+
+-- 44. Get all vehicles
+CREATE PROCEDURE sp_GetAllVehicles()
+BEGIN
+    SELECT v.vehicle_id, v.vehicle_number, v.vehicle_type, 
+           v.registration_number, v.status,
+           rl.location_name
+    FROM Vehicles v
+    JOIN Restaurant_Locations rl ON v.location_id = rl.location_id
+    ORDER BY v.location_id, v.vehicle_number;
+END //
+
+-- 45. Get vehicles by location
+CREATE PROCEDURE sp_GetVehiclesByLocation(IN p_location_id INT)
+BEGIN
+    SELECT vehicle_id, vehicle_number, vehicle_type, 
+           registration_number, status
+    FROM Vehicles
+    WHERE location_id = p_location_id
+    ORDER BY vehicle_number;
+END //
+
+-- ==================== RESERVATION LIST PROCEDURE ====================
+
+-- 46. Get all reservations (for listing page)
+CREATE PROCEDURE sp_GetAllReservations(IN p_location_id INT)
+BEGIN
+    SELECT r.reservation_id, r.reservation_date, r.reservation_time, 
+           r.party_size, r.status, r.special_requests,
+           CONCAT(c.first_name, ' ', c.last_name) as customer_name,
+           c.phone_number,
+           t.table_number
+    FROM Reservations r
+    JOIN Customers c ON r.customer_id = c.customer_id
+    JOIN Tables t ON r.table_id = t.table_id
+    WHERE t.location_id = p_location_id
+    ORDER BY r.reservation_date DESC, r.reservation_time DESC;
+END //
+
+-- ==================== DELIVERY AGENTS DETAILS ====================
+
+-- 47. Get all delivery agents with details
+CREATE PROCEDURE sp_GetAllDeliveryAgents()
+BEGIN
+    SELECT da.agent_id, da.current_status, da.total_deliveries, da.rating,
+           CONCAT(s.first_name, ' ', s.last_name) as agent_name,
+           s.phone_number,
+           v.vehicle_number, v.vehicle_type,
+           rl.location_name
+    FROM Delivery_Agents da
+    JOIN Staff s ON da.staff_id = s.staff_id
+    LEFT JOIN Vehicles v ON da.vehicle_id = v.vehicle_id
+    JOIN Restaurant_Locations rl ON s.location_id = rl.location_id
+    ORDER BY rl.location_name, s.last_name;
+END //
+
+-- 48. Get delivery agents by location
+CREATE PROCEDURE sp_GetDeliveryAgentsByLocation(IN p_location_id INT)
+BEGIN
+    SELECT da.agent_id, da.current_status, da.total_deliveries, da.rating,
+           CONCAT(s.first_name, ' ', s.last_name) as agent_name,
+           s.phone_number,
+           v.vehicle_number, v.vehicle_type
+    FROM Delivery_Agents da
+    JOIN Staff s ON da.staff_id = s.staff_id
+    LEFT JOIN Vehicles v ON da.vehicle_id = v.vehicle_id
+    WHERE s.location_id = p_location_id
+    ORDER BY s.last_name;
+END //
+
+DELIMITER ;
 -- ============================================
 -- FUNCTIONS
 -- ============================================
@@ -1320,6 +1649,36 @@ CREATE INDEX idx_orders_location ON Orders(location_id);
 CREATE INDEX idx_orderitems_item ON Order_Items(item_id);
 CREATE INDEX idx_payments_order ON Payments(order_id);
 CREATE INDEX idx_inventory_location ON Inventory(location_id);
+
+-- ============================================
+-- SCHEDULED EVENTS
+-- ============================================
+
+DELIMITER //
+
+-- Event: Auto-cleanup old reservations (runs daily at 2 AM)
+CREATE EVENT IF NOT EXISTS evt_CleanupOldReservations
+ON SCHEDULE EVERY 1 DAY
+STARTS CURRENT_TIMESTAMP + INTERVAL 1 DAY
+DO
+BEGIN
+    -- Update old 'No-show' reservations to 'Cancelled' after 7 days
+    UPDATE Reservations
+    SET status = 'Cancelled'
+    WHERE status = 'No-show'
+    AND reservation_date < DATE_SUB(CURDATE(), INTERVAL 7 DAY);
+    
+    -- Update completed reservations older than 30 days
+    UPDATE Reservations
+    SET status = 'Completed'
+    WHERE status = 'Confirmed'
+    AND reservation_date < DATE_SUB(CURDATE(), INTERVAL 1 DAY);
+END //
+
+DELIMITER ;
+
+-- Enable event scheduler
+SET GLOBAL event_scheduler = ON;
 
 -- ============================================
 -- END OF DATABASE DUMP

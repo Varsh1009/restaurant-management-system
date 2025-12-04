@@ -5,13 +5,62 @@
 {% block content %}
 <div class="page-header">
     <h1>Orders</h1>
-    <a href="{{ url_for('new_order') }}" class="btn btn-primary">➕ New Order</a>
+    <a href="{{ url_for('new_order') }}" class="button button-primary">➕ New Order</a>
 </div>
 
-<div class="card">
-    <div class="card-header">All Orders</div>
+<!-- IMPROVEMENT 1: Search/Filter Bar -->
+<div class="content-box" style="margin-bottom: 1.5rem;">
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <input type="text" 
+               id="searchInput" 
+               class="input-field" 
+               placeholder="🔍 Search by order ID, customer, or phone..." 
+               style="flex: 1; min-width: 250px;"
+               onkeyup="searchTable()">
+        
+        <select id="statusFilter" class="input-field" style="width: 150px;" onchange="filterByStatus()">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Preparing">Preparing</option>
+            <option value="Ready">Ready</option>
+            <option value="Completed">Completed</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+        
+        <select id="typeFilter" class="input-field" style="width: 150px;" onchange="filterByType()">
+            <option value="">All Types</option>
+            <option value="Dine-In">Dine-In</option>
+            <option value="Pickup">Pickup</option>
+            <option value="Delivery">Delivery</option>
+        </select>
+        
+        <select id="sortSelect" class="input-field" style="width: 180px;" onchange="sortTable()">
+            <option value="">Sort by...</option>
+            <option value="date-desc">Date (Newest First)</option>
+            <option value="date-asc">Date (Oldest First)</option>
+            <option value="amount-desc">Amount (High-Low)</option>
+            <option value="amount-asc">Amount (Low-High)</option>
+        </select>
+        
+        <button onclick="clearFilters()" class="button">Clear Filters</button>
+    </div>
+</div>
+
+<div class="content-box">
+    <div class="box-header">All Orders</div>
     
-    <table class="table">
+    <!-- IMPROVEMENT 4: Empty State -->
+    {% if not orders %}
+    <div class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📋</div>
+        <h3>No orders yet</h3>
+        <p style="color: #7f8c8d; margin-bottom: 1.5rem;">Start taking orders to see them here.</p>
+        <a href="{{ url_for('new_order') }}" class="button button-primary">➕ Create First Order</a>
+    </div>
+    {% else %}
+    
+    <table class="data-table" id="ordersTable">
         <thead>
             <tr>
                 <th>Order ID</th>
@@ -26,24 +75,297 @@
         </thead>
         <tbody>
             {% for order in orders %}
-            <tr>
-                <td>#{{ order.order_id }}</td>
+            <tr data-status="{{ order.status }}" data-type="{{ order.order_type }}">
+                <td><strong>#{{ order.order_id }}</strong></td>
                 <td>{{ order.customer_name }}</td>
                 <td>{{ order.phone_number }}</td>
-                <td>{{ order.order_type }}</td>
-                <td>${{ "%.2f"|format(order.total_amount) }}</td>
                 <td>
-                    <span class="badge badge-{{ 'success' if order.status in ['Completed', 'Delivered'] else 'warning' }}">
+                    <span class="type-badge type-{{ order.order_type.lower().replace('-', '') }}">
+                        {{ order.order_type }}
+                    </span>
+                </td>
+                <td><strong>${{ "%.2f"|format(order.total_amount) }}</strong></td>
+                <td>
+                    <span class="label label-{{ 'success' if order.status in ['Completed', 'Delivered'] else ('warning' if order.status in ['Pending', 'Preparing', 'Ready'] else 'danger') }}">
                         {{ order.status }}
                     </span>
                 </td>
                 <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
                 <td>
-                    <a href="{{ url_for('view_order', order_id=order.order_id) }}" class="btn btn-sm">View</a>
+                    <a href="{{ url_for('view_order', order_id=order.order_id) }}" 
+                       class="button button-small">View</a>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    
+    <!-- IMPROVEMENT 2: Pagination -->
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Showing <span id="showingCount">{{ orders|length }}</span> of {{ orders|length }} orders
+        </div>
+        <div class="pagination-controls">
+            <button onclick="previousPage()" id="prevBtn" class="button button-small" disabled>← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button onclick="nextPage()" id="nextBtn" class="button button-small">Next →</button>
+        </div>
+    </div>
+    
+    {% endif %}
 </div>
+
+<script>
+// IMPROVEMENT 1: Search Functionality
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('ordersTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    let visibleCount = 0;
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        
+        if (text.includes(filter)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    }
+    
+    updateVisibleCount();
+    resetPagination();
+}
+
+// IMPROVEMENT 1: Filter by Status
+function filterByStatus() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const table = document.getElementById('ordersTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const status = row.getAttribute('data-status');
+        
+        if (!statusFilter || status === statusFilter) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+    
+    // Apply other filters
+    applyAllFilters();
+}
+
+// IMPROVEMENT 1: Filter by Type
+function filterByType() {
+    applyAllFilters();
+}
+
+// Apply all active filters
+function applyAllFilters() {
+    const searchFilter = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const typeFilter = document.getElementById('typeFilter').value;
+    const table = document.getElementById('ordersTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    let visibleCount = 0;
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        const status = row.getAttribute('data-status');
+        const type = row.getAttribute('data-type');
+        
+        let showRow = true;
+        
+        // Apply search filter
+        if (searchFilter && !text.includes(searchFilter)) {
+            showRow = false;
+        }
+        
+        // Apply status filter
+        if (statusFilter && status !== statusFilter) {
+            showRow = false;
+        }
+        
+        // Apply type filter
+        if (typeFilter && type !== typeFilter) {
+            showRow = false;
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+        if (showRow) visibleCount++;
+    }
+    
+    document.getElementById('showingCount').textContent = visibleCount;
+    resetPagination();
+}
+
+// IMPROVEMENT 1: Sort Functionality
+function sortTable() {
+    const select = document.getElementById('sortSelect');
+    const table = document.getElementById('ordersTable');
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    rows.sort((a, b) => {
+        switch(select.value) {
+            case 'date-desc':
+                return b.cells[6].textContent.localeCompare(a.cells[6].textContent);
+            case 'date-asc':
+                return a.cells[6].textContent.localeCompare(b.cells[6].textContent);
+            case 'amount-desc':
+                const amountA = parseFloat(a.cells[4].textContent.replace('$', ''));
+                const amountB = parseFloat(b.cells[4].textContent.replace('$', ''));
+                return amountB - amountA;
+            case 'amount-asc':
+                const amtA = parseFloat(a.cells[4].textContent.replace('$', ''));
+                const amtB = parseFloat(b.cells[4].textContent.replace('$', ''));
+                return amtA - amtB;
+            default:
+                return 0;
+        }
+    });
+    
+    rows.forEach(row => tbody.appendChild(row));
+    resetPagination();
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('typeFilter').value = '';
+    document.getElementById('sortSelect').value = '';
+    applyAllFilters();
+}
+
+function updateVisibleCount() {
+    const table = document.getElementById('ordersTable');
+    const rows = Array.from(table.getElementsByTagName('tr')).slice(1);
+    const visibleCount = rows.filter(row => row.style.display !== 'none').length;
+    document.getElementById('showingCount').textContent = visibleCount;
+}
+
+// IMPROVEMENT 2: Pagination Logic
+let currentPage = 1;
+const rowsPerPage = 15;
+
+function showPage(page) {
+    const table = document.getElementById('ordersTable');
+    const rows = Array.from(table.getElementsByTagName('tr')).slice(1).filter(row => row.style.display !== 'none');
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    
+    rows.forEach((row, index) => {
+        if (index >= start && index < end) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+    document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages}`;
+    document.getElementById('prevBtn').disabled = page === 1;
+    document.getElementById('nextBtn').disabled = page >= totalPages;
+    document.getElementById('showingCount').textContent = Math.min(end, rows.length);
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        showPage(currentPage);
+    }
+}
+
+function nextPage() {
+    const table = document.getElementById('ordersTable');
+    const rows = Array.from(table.getElementsByTagName('tr')).slice(1).filter(row => row.style.display !== 'none');
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+    
+    if (currentPage < totalPages) {
+        currentPage++;
+        showPage(currentPage);
+    }
+}
+
+function resetPagination() {
+    currentPage = 1;
+    showPage(1);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('ordersTable');
+    if (table) {
+        showPage(1);
+    }
+});
+</script>
+
+<style>
+/* Empty State Styles */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #2c3e50;
+}
+
+/* Type Badges */
+.type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.type-dinein {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.type-pickup {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.type-delivery {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+/* Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-top: 1px solid #ecf0f1;
+    margin-top: 1rem;
+}
+
+.pagination-info {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+#pageInfo {
+    color: #2c3e50;
+    font-weight: 500;
+}
+</style>
 {% endblock %}

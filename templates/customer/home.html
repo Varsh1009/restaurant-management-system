@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Restaurant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .hero-section {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .hero-button {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid white;
+        }
+        
+        .hero-button-primary {
+            background-color: white;
+            color: #667eea;
+        }
+        
+        .hero-button-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .hero-button-outline {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .hero-button-outline:hover {
+            background-color: white;
+            color: #667eea;
+            transform: translateY(-3px);
+        }
+        
+        .features-section {
+            padding: 4rem 2rem;
+            background-color: #f8f9fa;
+        }
+        
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        
+        .feature-desc {
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🍽️</div>
+            <h1 class="hero-title">Welcome to Our Restaurant</h1>
+            <p class="hero-subtitle">Delicious food delivered to your doorstep. Browse our menu and order online!</p>
+            
+            <div class="hero-buttons">
+                <a href="{{ url_for('customer_signup') }}" class="hero-button hero-button-primary">
+                    Sign Up & Order Now
+                </a>
+                <a href="{{ url_for('login') }}" class="hero-button hero-button-outline">
+                    Login
+                </a>
+                <a href="{{ url_for('customer_menu') }}" class="hero-button hero-button-outline">
+                    Browse Menu
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="features-section">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🍕</div>
+                <h3 class="feature-title">Wide Selection</h3>
+                <p class="feature-desc">Appetizers, Main Courses, Desserts & More</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🚗</div>
+                <h3 class="feature-title">Fast Delivery</h3>
+                <p class="feature-desc">Quick delivery to your location</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">⭐</div>
+                <h3 class="feature-title">Loyalty Points</h3>
+                <p class="feature-desc">Earn points with every order</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">💳</div>
+                <h3 class="feature-title">Easy Payment</h3>
+                <p class="feature-desc">Multiple payment options available</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -2,21 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Confirmation - Restaurant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <div class="card" style="text-align: center; max-width: 600px; margin: 100px auto;">
+    <div class="page-wrapper">
+        <div class="content-box" style="text-align: center; max-width: 600px; margin: 100px auto;">
             <div style="font-size: 4rem; color: #27ae60;">✅</div>
             <h1>Order Confirmed!</h1>
             <h2>Order #{{ order.order_id }}</h2>
             
-            <div style="background-color: #ecf0f1; padding: 1.5rem; border-radius: 8px; margin: 2rem 0;">
+            <div class="info-box" style="margin: 2rem 0;">
                 <p><strong>Order Type:</strong> {{ order.order_type }}</p>
                 <p><strong>Total Amount:</strong> ${{ "%.2f"|format(order.total_amount) }}</p>
-                <p><strong>Status:</strong> <span class="badge badge-warning">{{ order.status }}</span></p>
+                <p><strong>Status:</strong> <span class="label label-warning">{{ order.status }}</span></p>
                 
                 {% if order.delivery_address %}
                 <p><strong>Delivery Address:</strong><br>{{ order.delivery_address }}</p>
@@ -31,7 +32,9 @@
                 {% endif %}
             </p>
             
-            <a href="{{ url_for('customer_menu') }}" class="btn btn-primary">Order More</a>
+            <a href="{{ url_for('customer_menu') }}" class="button button-primary" style="padding: 0.75rem 2rem; margin-top: 1rem;">
+                Order More
+            </a>
         </div>
     </div>
 </body>

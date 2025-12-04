@@ -20,7 +20,7 @@ class Database:
         except pymysql.Error as e:
             print(f"Database connection error: {e}")
             raise
-    
+
     @staticmethod
     @contextmanager
     def get_cursor(commit=False):
@@ -38,7 +38,7 @@ class Database:
         finally:
             cursor.close()
             connection.close()
-    
+
     @staticmethod
     def execute_query(query, params=None, fetch=True):
         """Execute a single query and return results"""
@@ -47,31 +47,45 @@ class Database:
             if fetch:
                 return cursor.fetchall()
             return cursor.rowcount
-    
+
     @staticmethod
     def call_procedure(proc_name, params=None):
-        """Call a stored procedure - FIXED VERSION"""
+        """Call a stored procedure - FIXED to handle multiple result sets"""
         connection = Database.get_connection()
         cursor = connection.cursor()
         try:
             cursor.callproc(proc_name, params or ())
             
-            # Fetch the result directly (PyMySQL doesn't have stored_results())
-            result = cursor.fetchall()
+            # Fetch ALL result sets (some procedures like sp_AuthenticateUser have multiple)
+            results = []
+            while True:
+                result = cursor.fetchall()
+                if result:
+                    results.append(result)
+                # Move to next result set
+                if not cursor.nextset():
+                    break
             
             connection.commit()
             cursor.close()
             connection.close()
             
-            return result
+            # Return first non-empty result (usually what we want)
+            for result in results:
+                if result:
+                    return result
+            
+            return []
             
         except Exception as e:
             connection.rollback()
             cursor.close()
             connection.close()
             print(f"Procedure error: {e}")
+            import traceback
+            traceback.print_exc()
             raise
-    
+
     @staticmethod
     def execute_function(func_name, params=None):
         """Execute a stored function"""

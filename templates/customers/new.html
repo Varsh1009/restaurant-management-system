@@ -7,58 +7,258 @@
     <h1>Add New Customer</h1>
 </div>
 
-<div class="card">
-    <div class="card-header">Customer Information</div>
+<div class="content-box">
+    <div class="box-header">Customer Information</div>
     
-    <form method="POST" action="{{ url_for('new_customer') }}">
+    <!-- IMPROVEMENT 5: Display Flask error messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'danger' %}
+                <div class="error-message">
+                    <strong>⚠️ Error:</strong> {{ message }}
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" action="{{ url_for('new_customer') }}" id="customerForm" onsubmit="return validateForm()">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group">
+            <div class="field-group">
                 <label for="first_name">First Name *</label>
-                <input type="text" name="first_name" id="first_name" class="form-control" required>
+                <input type="text" 
+                       name="first_name" 
+                       id="first_name" 
+                       class="input-field" 
+                       required
+                       value="{{ request.form.get('first_name', '') }}"
+                       onblur="validateField('first_name')">
+                <span class="field-error" id="first_name_error"></span>
             </div>
             
-            <div class="form-group">
+            <div class="field-group">
                 <label for="last_name">Last Name *</label>
-                <input type="text" name="last_name" id="last_name" class="form-control" required>
+                <input type="text" 
+                       name="last_name" 
+                       id="last_name" 
+                       class="input-field" 
+                       required
+                       value="{{ request.form.get('last_name', '') }}"
+                       onblur="validateField('last_name')">
+                <span class="field-error" id="last_name_error"></span>
             </div>
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group">
+            <div class="field-group">
                 <label for="email">Email *</label>
-                <input type="email" name="email" id="email" class="form-control" required>
+                <input type="email" 
+                       name="email" 
+                       id="email" 
+                       class="input-field" 
+                       required
+                       value="{{ request.form.get('email', '') }}"
+                       onblur="validateField('email')">
+                <span class="field-error" id="email_error"></span>
             </div>
             
-            <div class="form-group">
+            <div class="field-group">
                 <label for="phone_number">Phone Number *</label>
-                <input type="tel" name="phone_number" id="phone_number" class="form-control" required>
+                <input type="tel" 
+                       name="phone_number" 
+                       id="phone_number" 
+                       class="input-field" 
+                       required
+                       placeholder="123-456-7890"
+                       value="{{ request.form.get('phone_number', '') }}"
+                       onblur="validateField('phone_number')">
+                <span class="field-error" id="phone_number_error"></span>
             </div>
         </div>
         
-        <div class="form-group">
+        <div class="field-group">
             <label for="address">Address</label>
-            <input type="text" name="address" id="address" class="form-control">
+            <input type="text" 
+                   name="address" 
+                   id="address" 
+                   class="input-field"
+                   value="{{ request.form.get('address', '') }}">
         </div>
         
         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
-            <div class="form-group">
+            <div class="field-group">
                 <label for="city">City</label>
-                <input type="text" name="city" id="city" class="form-control">
+                <input type="text" 
+                       name="city" 
+                       id="city" 
+                       class="input-field"
+                       value="{{ request.form.get('city', '') }}">
             </div>
             
-            <div class="form-group">
+            <div class="field-group">
                 <label for="state">State</label>
-                <input type="text" name="state" id="state" class="form-control">
+                <input type="text" 
+                       name="state" 
+                       id="state" 
+                       class="input-field"
+                       maxlength="2"
+                       placeholder="MA"
+                       value="{{ request.form.get('state', '') }}">
             </div>
             
-            <div class="form-group">
+            <div class="field-group">
                 <label for="zip_code">Zip Code</label>
-                <input type="text" name="zip_code" id="zip_code" class="form-control">
+                <input type="text" 
+                       name="zip_code" 
+                       id="zip_code" 
+                       class="input-field"
+                       maxlength="10"
+                       placeholder="12345"
+                       value="{{ request.form.get('zip_code', '') }}">
             </div>
         </div>
         
-        <button type="submit" class="btn btn-primary">Add Customer</button>
-        <a href="{{ url_for('customers_list') }}" class="btn">Cancel</a>
+        <div style="margin-top: 1.5rem;">
+            <button type="submit" class="button button-primary">Add Customer</button>
+            <a href="{{ url_for('customers_list') }}" class="button">Cancel</a>
+        </div>
     </form>
 </div>
+
+<script>
+// IMPROVEMENT 5: Form Validation
+function validateForm() {
+    let isValid = true;
+    
+    // Clear all previous errors
+    document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.input-field').forEach(el => el.style.borderColor = '');
+    
+    // Validate First Name
+    const firstName = document.getElementById('first_name').value.trim();
+    if (!firstName) {
+        showError('first_name', 'First name is required');
+        isValid = false;
+    } else if (firstName.length < 2) {
+        showError('first_name', 'First name must be at least 2 characters');
+        isValid = false;
+    }
+    
+    // Validate Last Name
+    const lastName = document.getElementById('last_name').value.trim();
+    if (!lastName) {
+        showError('last_name', 'Last name is required');
+        isValid = false;
+    } else if (lastName.length < 2) {
+        showError('last_name', 'Last name must be at least 2 characters');
+        isValid = false;
+    }
+    
+    // Validate Email
+    const email = document.getElementById('email').value.trim();
+    if (!email) {
+        showError('email', 'Email is required');
+        isValid = false;
+    } else if (!validateEmail(email)) {
+        showError('email', 'Please enter a valid email address');
+        isValid = false;
+    }
+    
+    // Validate Phone Number
+    const phone = document.getElementById('phone_number').value.trim();
+    if (!phone) {
+        showError('phone_number', 'Phone number is required');
+        isValid = false;
+    } else if (!validatePhone(phone)) {
+        showError('phone_number', 'Phone format: 123-456-7890 or (123) 456-7890');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+function validateField(fieldId) {
+    const field = document.getElementById(fieldId);
+    const value = field.value.trim();
+    
+    clearError(fieldId);
+    
+    switch(fieldId) {
+        case 'first_name':
+        case 'last_name':
+            if (value && value.length < 2) {
+                showError(fieldId, 'Must be at least 2 characters');
+            }
+            break;
+        case 'email':
+            if (value && !validateEmail(value)) {
+                showError(fieldId, 'Invalid email format');
+            }
+            break;
+        case 'phone_number':
+            if (value && !validatePhone(value)) {
+                showError(fieldId, 'Invalid phone format');
+            }
+            break;
+    }
+}
+
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function validatePhone(phone) {
+    // Accepts: 123-456-7890, (123) 456-7890, 1234567890
+    const re = /^[\d\s\-\(\)]+$/;
+    const digits = phone.replace(/\D/g, '');
+    return re.test(phone) && digits.length === 10;
+}
+
+function showError(fieldId, message) {
+    const errorSpan = document.getElementById(fieldId + '_error');
+    const inputField = document.getElementById(fieldId);
+    
+    errorSpan.textContent = message;
+    inputField.style.borderColor = '#e74c3c';
+}
+
+function clearError(fieldId) {
+    const errorSpan = document.getElementById(fieldId + '_error');
+    const inputField = document.getElementById(fieldId);
+    
+    errorSpan.textContent = '';
+    inputField.style.borderColor = '';
+}
+</script>
+
+<style>
+/* Error Message Styles */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 4px;
+    border-left: 4px solid #e74c3c;
+    margin-bottom: 1.5rem;
+}
+
+.field-error {
+    display: block;
+    color: #e74c3c;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    min-height: 1.2rem;
+}
+
+.input-field:invalid {
+    border-color: #e74c3c;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #3498db;
+}
+</style>
 {% endblock %}

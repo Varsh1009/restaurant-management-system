@@ -5,13 +5,47 @@
 {% block content %}
 <div class="page-header">
     <h1>Customers</h1>
-    <a href="{{ url_for('new_customer') }}" class="btn btn-primary">➕ New Customer</a>
+    <div style="display: flex; gap: 0.5rem;">
+        <a href="{{ url_for('new_customer') }}" class="button button-primary">➕ New Customer</a>
+        <a href="{{ url_for('export_customers_all_csv') }}" class="button button-success">📥 Export All</a>
+    </div>
 </div>
 
-<div class="card">
-    <div class="card-header">All Customers</div>
+<!-- IMPROVEMENT 1: Search/Filter Bar -->
+<div class="content-box" style="margin-bottom: 1.5rem;">
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <input type="text" 
+               id="searchInput" 
+               class="input-field" 
+               placeholder="🔍 Search by name, email, or phone..." 
+               style="flex: 1;"
+               onkeyup="searchTable()">
+        
+        <select id="sortSelect" class="input-field" style="width: 200px;" onchange="sortTable()">
+            <option value="">Sort by...</option>
+            <option value="name">Name (A-Z)</option>
+            <option value="points">Loyalty Points (High-Low)</option>
+            <option value="recent">Recently Added</option>
+        </select>
+        
+        <button onclick="clearFilters()" class="button">Clear</button>
+    </div>
+</div>
+
+<div class="content-box">
+    <div class="box-header">All Customers</div>
     
-    <table class="table">
+    <!-- IMPROVEMENT 4: Empty State -->
+    {% if not customers %}
+    <div class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
+        <h3>No customers yet</h3>
+        <p style="color: #7f8c8d; margin-bottom: 1.5rem;">Start building your customer base by adding your first customer.</p>
+        <a href="{{ url_for('new_customer') }}" class="button button-primary">➕ Add First Customer</a>
+    </div>
+    {% else %}
+    
+    <table class="data-table" id="customersTable">
         <thead>
             <tr>
                 <th>ID</th>
@@ -30,18 +64,19 @@
                 <td>{{ customer.email }}</td>
                 <td>{{ customer.phone_number }}</td>
                 <td>
-                    <span class="badge badge-success">{{ customer.loyalty_points }} pts</span>
+                    <span class="label label-success">{{ customer.loyalty_points }} pts</span>
                 </td>
                 <td>
                     <a href="{{ url_for('edit_customer', customer_id=customer.customer_id) }}" 
-                       class="btn btn-sm">Edit</a>
+                       class="button button-small">Edit</a>
                     
                     {% if session.user.role == 'Manager' %}
+                    <!-- IMPROVEMENT 3: Better Confirmation Dialog -->
                     <form method="POST" 
                           action="{{ url_for('delete_customer', customer_id=customer.customer_id) }}" 
                           style="display: inline;"
-                          onsubmit="return confirm('Delete {{ customer.first_name }} {{ customer.last_name }}? This will also delete their orders!')">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                          onsubmit="return confirmDelete('{{ customer.first_name }} {{ customer.last_name }}')">
+                        <button type="submit" class="button button-small button-danger">Delete</button>
                     </form>
                     {% endif %}
                 </td>
@@ -49,5 +84,178 @@
             {% endfor %}
         </tbody>
     </table>
+    
+    <!-- IMPROVEMENT 2: Pagination -->
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Showing <span id="showingCount">{{ customers|length }}</span> of {{ customers|length }} customers
+        </div>
+        <div class="pagination-controls">
+            <button onclick="previousPage()" id="prevBtn" class="button button-small" disabled>← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button onclick="nextPage()" id="nextBtn" class="button button-small">Next →</button>
+        </div>
+    </div>
+    
+    {% endif %}
 </div>
+
+<script>
+// IMPROVEMENT 1: Search Functionality
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('customersTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    let visibleCount = 0;
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        
+        if (text.includes(filter)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    }
+    
+    document.getElementById('showingCount').textContent = visibleCount;
+    resetPagination();
+}
+
+// IMPROVEMENT 1: Sort Functionality
+function sortTable() {
+    const select = document.getElementById('sortSelect');
+    const table = document.getElementById('customersTable');
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    rows.sort((a, b) => {
+        switch(select.value) {
+            case 'name':
+                return a.cells[1].textContent.localeCompare(b.cells[1].textContent);
+            case 'points':
+                const pointsA = parseInt(a.cells[4].textContent);
+                const pointsB = parseInt(b.cells[4].textContent);
+                return pointsB - pointsA;
+            case 'recent':
+                return b.cells[0].textContent - a.cells[0].textContent;
+            default:
+                return 0;
+        }
+    });
+    
+    rows.forEach(row => tbody.appendChild(row));
+    resetPagination();
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('sortSelect').value = '';
+    searchTable();
+}
+
+// IMPROVEMENT 2: Pagination Logic
+let currentPage = 1;
+const rowsPerPage = 10;
+
+function showPage(page) {
+    const table = document.getElementById('customersTable');
+    const rows = Array.from(table.getElementsByTagName('tr')).slice(1).filter(row => row.style.display !== 'none');
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    
+    rows.forEach((row, index) => {
+        if (index >= start && index < end) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+    document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages}`;
+    document.getElementById('prevBtn').disabled = page === 1;
+    document.getElementById('nextBtn').disabled = page >= totalPages;
+    document.getElementById('showingCount').textContent = Math.min(end, rows.length);
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        showPage(currentPage);
+    }
+}
+
+function nextPage() {
+    const table = document.getElementById('customersTable');
+    const rows = Array.from(table.getElementsByTagName('tr')).slice(1).filter(row => row.style.display !== 'none');
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+    
+    if (currentPage < totalPages) {
+        currentPage++;
+        showPage(currentPage);
+    }
+}
+
+function resetPagination() {
+    currentPage = 1;
+    showPage(1);
+}
+
+// IMPROVEMENT 3: Better Confirmation Dialog
+function confirmDelete(customerName) {
+    return confirm(`Are you sure you want to delete ${customerName}?
+
+This will also delete all their order history!
+
+This action cannot be undone.`);
+}
+
+// Initialize pagination on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('customersTable');
+    if (table) {
+        showPage(1);
+    }
+});
+</script>
+
+<style>
+/* Empty State Styles */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #2c3e50;
+}
+
+/* Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-top: 1px solid #ecf0f1;
+    margin-top: 1rem;
+}
+
+.pagination-info {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+#pageInfo {
+    color: #2c3e50;
+    font-weight: 500;
+}
+</style>
 {% endblock %}

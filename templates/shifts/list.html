@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Shifts Schedule - Restaurant Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Shifts Schedule</h1>
+</div>
+
+<div class="content-box">
+    <div class="box-header">Upcoming Shifts</div>
+    
+    {% if not shifts %}
+    <div class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📅</div>
+        <h3>No upcoming shifts scheduled</h3>
+        <p style="color: #7f8c8d;">Shift schedule will appear here.</p>
+    </div>
+    {% else %}
+    
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Shift ID</th>
+                <th>Date</th>
+                <th>Staff Member</th>
+                <th>Role</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Break (min)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shift in shifts %}
+            <tr>
+                <td>{{ shift.shift_id }}</td>
+                <td>{{ shift.shift_date }}</td>
+                <td>{{ shift.staff_name }}</td>
+                <td>
+                    <span class="type-badge">{{ shift.role }}</span>
+                </td>
+                <td>{{ shift.start_time }}</td>
+                <td>{{ shift.end_time }}</td>
+                <td>{{ shift.break_duration }}</td>
+                <td>
+                    <span class="label label-{{ 'success' if shift.status == 'Completed' else ('warning' if shift.status == 'Scheduled' else 'danger') }}">
+                        {{ shift.status }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% endif %}
+</div>
+{% endblock %}

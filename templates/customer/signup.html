@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Restaurant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-box" style="max-width: 500px;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 3rem;">🍽️</div>
+                <h1>Create Account</h1>
+                <p style="color: #7f8c8d;">Join us and start ordering!</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('customer_signup') }}" id="signupForm" onsubmit="return validateSignupForm()">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="field-group">
+                        <label for="first_name">First Name *</label>
+                        <input type="text" 
+                               name="first_name" 
+                               id="first_name" 
+                               class="input-field" 
+                               required
+                               value="{{ request.form.get('first_name', '') }}">
+                        <span class="field-error" id="first_name_error"></span>
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="last_name">Last Name *</label>
+                        <input type="text" 
+                               name="last_name" 
+                               id="last_name" 
+                               class="input-field" 
+                               required
+                               value="{{ request.form.get('last_name', '') }}">
+                        <span class="field-error" id="last_name_error"></span>
+                    </div>
+                </div>
+                
+                <div class="field-group">
+                    <label for="email">Email *</label>
+                    <input type="email" 
+                           name="email" 
+                           id="email" 
+                           class="input-field" 
+                           required
+                           placeholder="your@email.com"
+                           value="{{ request.form.get('email', '') }}">
+                    <span class="field-error" id="email_error"></span>
+                </div>
+                
+                <div class="field-group">
+                    <label for="phone_number">Phone Number *</label>
+                    <input type="tel" 
+                           name="phone_number" 
+                           id="phone_number" 
+                           class="input-field" 
+                           required
+                           placeholder="617-555-1234"
+                           value="{{ request.form.get('phone_number', '') }}">
+                    <span class="field-error" id="phone_error"></span>
+                </div>
+                
+                <div class="field-group">
+                    <label for="address">Delivery Address (Optional)</label>
+                    <input type="text" 
+                           name="address" 
+                           id="address" 
+                           class="input-field"
+                           placeholder="123 Main St"
+                           value="{{ request.form.get('address', '') }}">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+                    <div class="field-group">
+                        <label for="city">City</label>
+                        <input type="text" 
+                               name="city" 
+                               id="city" 
+                               class="input-field"
+                               placeholder="Boston"
+                               value="{{ request.form.get('city', '') }}">
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="state">State</label>
+                        <input type="text" 
+                               name="state" 
+                               id="state" 
+                               class="input-field"
+                               maxlength="2"
+                               placeholder="MA"
+                               value="{{ request.form.get('state', '') }}">
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="zip_code">Zip</label>
+                        <input type="text" 
+                               name="zip_code" 
+                               id="zip_code" 
+                               class="input-field"
+                               maxlength="10"
+                               placeholder="02108"
+                               value="{{ request.form.get('zip_code', '') }}">
+                    </div>
+                </div>
+                
+                <button type="submit" class="button button-primary" style="width: 100%; padding: 0.75rem; margin-top: 1rem;">
+                    Create Account & Browse Menu
+                </button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p style="color: #7f8c8d;">Already have an account?</p>
+                <a href="{{ url_for('login') }}" class="button" style="width: 100%; margin-top: 0.5rem;">
+                    Login Instead
+                </a>
+            </div>
+            
+            <div style="text-align: center; margin-top: 1rem;">
+                <a href="{{ url_for('customer_home') }}" style="color: #7f8c8d; text-decoration: none;">
+                    ← Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    function validateSignupForm() {
+        let isValid = true;
+        
+        // Clear errors
+        document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+        
+        // Validate first name
+        const firstName = document.getElementById('first_name').value.trim();
+        if (firstName.length < 2) {
+            document.getElementById('first_name_error').textContent = 'At least 2 characters required';
+            isValid = false;
+        }
+        
+        // Validate last name
+        const lastName = document.getElementById('last_name').value.trim();
+        if (lastName.length < 2) {
+            document.getElementById('last_name_error').textContent = 'At least 2 characters required';
+            isValid = false;
+        }
+        
+        // Validate email
+        const email = document.getElementById('email').value;
+        if (!email.includes('@') || !email.includes('.')) {
+            document.getElementById('email_error').textContent = 'Invalid email format';
+            isValid = false;
+        }
+        
+        // Validate phone
+        const phone = document.getElementById('phone_number').value;
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phoneDigits.length !== 10) {
+            document.getElementById('phone_error').textContent = 'Phone must be 10 digits';
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    </script>
+</body>
+</html>
